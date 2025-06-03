@@ -47,8 +47,8 @@ const ClienteDashboard = () => {
   }, [authUser]);
 
   return (
-    <ClienteLayout title="Panel de Cliente">
-      <div className="container mx-auto px-4 py-6">
+    <ClienteLayout title="">
+      <div className="space-y-8">
         <div className="bg-gradient-to-r from-primary to-secondary rounded-lg p-6 mb-8 text-white">
           <h1 className="text-2xl font-bold mb-2">
             Bienvenido, {perfil?.nombre || ''}

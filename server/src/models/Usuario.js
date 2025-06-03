@@ -47,10 +47,6 @@ const Usuario = sequelize.define('Usuario', {
       len: [6, 100] // La contraseña debe tener entre 6 y 100 caracteres
     }
   },
-  telefono: {
-    type: DataTypes.STRING,
-    allowNull: true
-  },
   rol: {
     type: DataTypes.ENUM('administrador', 'recepcionista', 'cliente'),
     defaultValue: 'cliente',

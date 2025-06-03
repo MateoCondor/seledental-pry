@@ -31,7 +31,6 @@ const crearAdminInicial = async () => {
       apellido: process.env.ADMIN_APELLIDO || 'System',
       email: process.env.ADMIN_EMAIL || 'admin@seledental.com',
       password: process.env.ADMIN_PASSWORD || 'admin123',
-      telefono: process.env.ADMIN_TELEFONO || '',
       rol: 'administrador',
       activo: true
     };

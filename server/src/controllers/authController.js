@@ -14,7 +14,7 @@ const { successResponse, errorResponse } = require('../utils/responses');
  */
 const registro = async (req, res) => {
   try {
-    const { nombre, apellido, email, password, telefono, rol } = req.body;
+    const { nombre, apellido, email, password, rol } = req.body;
     
     // Verificar si el correo ya está registrado
     const usuarioExistente = await Usuario.findOne({ where: { email } });
@@ -36,7 +36,6 @@ const registro = async (req, res) => {
       apellido,
       email,
       password, // La contraseña se hasheará automáticamente gracias al hook
-      telefono,
       rol: rol || 'cliente' // Si no se especifica, asignar rol 'cliente'
     });
     
@@ -50,7 +49,6 @@ const registro = async (req, res) => {
         nombre: nuevoUsuario.nombre,
         apellido: nuevoUsuario.apellido,
         email: nuevoUsuario.email,
-        telefono: nuevoUsuario.telefono,
         rol: nuevoUsuario.rol
       },
       token
@@ -111,7 +109,6 @@ const login = async (req, res) => {
         nombre: usuario.nombre,
         apellido: usuario.apellido,
         email: usuario.email,
-        telefono: usuario.telefono,
         rol: usuario.rol
       },
       token

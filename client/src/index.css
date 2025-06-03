@@ -19,11 +19,11 @@
   }
   
   .btn-primary {
-    @apply bg-primary text-white hover:bg-[#7d43c9];
+    @apply bg-primary text-white hover:bg-primaryDark;
   }
   
   .btn-secondary {
-    @apply bg-secondary text-white hover:bg-slate-900;
+    @apply bg-secondary text-white hover:bg-secondaryDark;
   }
   
   .btn-danger {
@@ -35,6 +35,6 @@
   }
   
   .card {
-    @apply bg-white rounded-lg shadow-md p-6;
+    @apply bg-white rounded-xl shadow-sm border border-gray-200 p-6;
   }
 }

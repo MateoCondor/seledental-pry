@@ -15,7 +15,11 @@ const obtenerUsuarios = async (req, res) => {
   try {
     // Obtener todos los usuarios excluyendo el campo password
     const usuarios = await Usuario.findAll({
-      attributes: { exclude: ['password'] }
+      where: { 
+        activo: true  // Solo obtener usuarios activos
+      },
+      attributes: { exclude: ['password'] },
+      order: [['createdAt', 'ASC']] // Ordenar por fecha de creación
     });
     
     return successResponse(res, 200, 'Usuarios obtenidos correctamente', { 
@@ -66,7 +70,7 @@ const obtenerUsuarioPorId = async (req, res) => {
  */
 const crearUsuario = async (req, res) => {
   try {
-    const { nombre, apellido, email, password, telefono, rol } = req.body;
+    const { nombre, apellido, email, password, rol } = req.body;
     
     // Verificar si el correo ya está registrado
     const usuarioExistente = await Usuario.findOne({ where: { email } });
@@ -88,7 +92,6 @@ const crearUsuario = async (req, res) => {
       apellido,
       email,
       password, // Se encriptará automáticamente en el modelo
-      telefono,
       rol,
       activo: true
     });
@@ -125,7 +128,7 @@ const crearUsuario = async (req, res) => {
 const actualizarUsuario = async (req, res) => {
   try {
     const { id } = req.params;
-    const { nombre, apellido, email, password, telefono, rol, activo } = req.body;
+    const { nombre, apellido, email, password, rol, activo } = req.body;
     
     // Verificar que el usuario existe
     const usuario = await Usuario.findByPk(id);
@@ -146,6 +149,11 @@ const actualizarUsuario = async (req, res) => {
       if (activo !== undefined && activo !== usuario.activo) {
         return errorResponse(res, 403, 'No tiene permisos para cambiar el estado de activación');
       }
+    }
+    
+    // NUEVA VALIDACIÓN: Prevenir que un administrador cambie su propio rol
+    if (req.usuario.id === parseInt(id) && req.usuario.rol === 'administrador' && rol && rol !== 'administrador') {
+      return errorResponse(res, 403, 'No puede cambiar su propio rol de administrador');
     }
     
     // Si se está actualizando el email, verificar que no esté en uso
@@ -172,7 +180,6 @@ const actualizarUsuario = async (req, res) => {
       apellido: apellido || usuario.apellido,
       email: email || usuario.email,
       password: password || undefined, // Solo actualizar si se proporciona
-      telefono: telefono !== undefined ? telefono : usuario.telefono,
       rol: rol || usuario.rol,
       activo: activo !== undefined ? activo : usuario.activo
     });

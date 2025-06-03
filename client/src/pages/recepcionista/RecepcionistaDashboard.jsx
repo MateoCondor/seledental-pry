@@ -72,12 +72,13 @@ const RecepcionistaDashboard = () => {
   };
 
   return (
-    <RecepcionistaLayout title="Panel de Recepción">
-      <div className="container mx-auto px-4 py-6">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
-          <h1 className="text-2xl font-bold text-gray-800 mb-4 md:mb-0">
+    <RecepcionistaLayout title="">
+      <div className="space-y-8">
+        <div className="bg-gradient-to-r from-primary to-secondary rounded-lg p-6 mb-8 text-white">
+          <h1 className="text-2xl font-bold mb-2">
             Bienvenido, {perfil?.nombre || ''}
           </h1>
+          <p>Esta es tu área personal donde podrás gestionar .....</p>
         </div>
         
         {loading ? (

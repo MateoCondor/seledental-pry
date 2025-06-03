@@ -4,15 +4,14 @@ import { XMarkIcon } from '@heroicons/react/24/outline';
 import { useForm } from 'react-hook-form';
 
 /**
- * Modal para crear/editar un usuario
- * @param {Object} props - Propiedades del componente
- * @param {boolean} props.isOpen - Indica si el modal está abierto
- * @param {Function} props.onClose - Función para cerrar el modal
- * @param {Function} props.onSave - Función para guardar los cambios
- * @param {Object} props.usuario - Datos del usuario a editar (null para crear)
- * @returns {JSX.Element} Componente de modal
+ * Modal para crear o editar usuarios
+ * @param {boolean} isOpen - Si el modal está abierto
+ * @param {function} onClose - Función para cerrar el modal
+ * @param {function} onSave - Función para guardar el usuario
+ * @param {object} usuario - Usuario a editar (null para crear nuevo)
+ * @param {object} currentUser - Usuario actualmente logueado
  */
-const UsuarioModal = ({ isOpen, onClose, onSave, usuario }) => {
+const UsuarioModal = ({ isOpen, onClose, onSave, usuario, currentUser }) => {
   // Hook para manejar el formulario
   const { register, handleSubmit, formState: { errors }, reset, setValue } = useForm();
   
@@ -48,6 +47,19 @@ const UsuarioModal = ({ isOpen, onClose, onSave, usuario }) => {
       onSave(data);
     }
   };
+
+  // Resetear formulario cuando se cierra el modal
+  useEffect(() => {
+    if (!isOpen) {
+      reset({
+        nombre: '',
+        apellido: '',
+        email: '',
+        rol: 'cliente',
+        password: ''
+      });
+    }
+  }, [isOpen, reset]);
   
   return (
     <Transition appear show={isOpen} as={Fragment}>
@@ -162,6 +174,7 @@ const UsuarioModal = ({ isOpen, onClose, onSave, usuario }) => {
                         id="rol"
                         className="input mt-1"
                         {...register('rol', { required: 'El rol es requerido' })}
+                        disabled={usuario && usuario.id === currentUser?.id && currentUser?.rol === 'administrador'}
                       >
                         <option value="administrador">Administrador</option>
                         <option value="recepcionista">Recepcionista</option>
@@ -169,6 +182,11 @@ const UsuarioModal = ({ isOpen, onClose, onSave, usuario }) => {
                       </select>
                       {errors.rol && (
                         <p className="mt-1 text-sm text-red-600">{errors.rol.message}</p>
+                      )}
+                      {usuario && usuario.id === currentUser?.id && currentUser?.rol === 'administrador' && (
+                        <p className="mt-1 text-sm text-yellow-600">
+                          No puedes cambiar tu propio rol de administrador
+                        </p>
                       )}
                     </div>
                     
