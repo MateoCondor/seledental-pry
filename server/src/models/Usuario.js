@@ -55,6 +55,34 @@ const Usuario = sequelize.define('Usuario', {
   activo: {
     type: DataTypes.BOOLEAN,
     defaultValue: true
+  },
+  // Nuevos campos para clientes
+  cedula: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    unique: true,
+    validate: {
+      len: [8, 20] // Longitud de cédula entre 8 y 20 caracteres
+    }
+  },
+  fechaNacimiento: {
+    type: DataTypes.DATEONLY,
+    allowNull: true
+  },
+  celular: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    validate: {
+      len: [8, 15] // Longitud de celular entre 8 y 15 caracteres
+    }
+  },
+  direccion: {
+    type: DataTypes.TEXT,
+    allowNull: true
+  },
+  perfilCompleto: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false // Para saber si el cliente completó sus datos adicionales
   }
 }, {
   // Opciones del modelo

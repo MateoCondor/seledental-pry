@@ -70,12 +70,20 @@ const obtenerUsuarioPorId = async (req, res) => {
  */
 const crearUsuario = async (req, res) => {
   try {
-    const { nombre, apellido, email, password, rol } = req.body;
+    const { nombre, apellido, email, password, rol, cedula, fechaNacimiento, celular, direccion } = req.body;
     
     // Verificar si el correo ya está registrado
     const usuarioExistente = await Usuario.findOne({ where: { email } });
     if (usuarioExistente) {
       return errorResponse(res, 400, 'El correo electrónico ya está en uso');
+    }
+    
+    // Verificar si la cédula ya está registrada (si se proporciona)
+    if (cedula) {
+      const usuarioConCedula = await Usuario.findOne({ where: { cedula } });
+      if (usuarioConCedula) {
+        return errorResponse(res, 400, 'La cédula ya está registrada');
+      }
     }
     
     // Validar el rol
@@ -93,7 +101,12 @@ const crearUsuario = async (req, res) => {
       email,
       password, // Se encriptará automáticamente en el modelo
       rol,
-      activo: true
+      activo: true,
+      cedula,
+      fechaNacimiento,
+      celular,
+      direccion,
+      perfilCompleto: rol === 'cliente' ? (cedula ? true : false) : true
     });
     
     // Retornar el usuario creado (sin la contraseña)
@@ -128,7 +141,7 @@ const crearUsuario = async (req, res) => {
 const actualizarUsuario = async (req, res) => {
   try {
     const { id } = req.params;
-    const { nombre, apellido, email, password, rol, activo } = req.body;
+    const { nombre, apellido, email, password, rol, activo, cedula, fechaNacimiento, celular, direccion } = req.body;
     
     // Verificar que el usuario existe
     const usuario = await Usuario.findByPk(id);
@@ -164,6 +177,19 @@ const actualizarUsuario = async (req, res) => {
       }
     }
     
+    // Si se está actualizando la cédula, verificar que no esté en uso
+    if (cedula && cedula !== usuario.cedula) {
+      const usuarioConCedula = await Usuario.findOne({ 
+        where: { 
+          cedula,
+          id: { [require('sequelize').Op.ne]: id }
+        } 
+      });
+      if (usuarioConCedula) {
+        return errorResponse(res, 400, 'La cédula ya está registrada por otro usuario');
+      }
+    }
+    
     // Validar el rol (si se proporciona)
     if (rol) {
       const rolesValidos = ['administrador', 'recepcionista', 'cliente'];
@@ -174,14 +200,32 @@ const actualizarUsuario = async (req, res) => {
       }
     }
     
+    // Determinar si el perfil está completo
+    let perfilCompleto = usuario.perfilCompleto;
+    if (usuario.rol === 'cliente' || rol === 'cliente') {
+      const cedulaFinal = cedula !== undefined ? cedula : usuario.cedula;
+      const fechaNacimientoFinal = fechaNacimiento !== undefined ? fechaNacimiento : usuario.fechaNacimiento;
+      const celularFinal = celular !== undefined ? celular : usuario.celular;
+      const direccionFinal = direccion !== undefined ? direccion : usuario.direccion;
+      
+      perfilCompleto = !!(cedulaFinal && fechaNacimientoFinal && celularFinal && direccionFinal);
+    } else {
+      perfilCompleto = true; // Administradores y recepcionistas no necesitan completar perfil adicional
+    }
+    
     // Actualizar el usuario
     await usuario.update({
-      nombre: nombre || usuario.nombre,
-      apellido: apellido || usuario.apellido,
-      email: email || usuario.email,
+      nombre: nombre !== undefined ? nombre : usuario.nombre,
+      apellido: apellido !== undefined ? apellido : usuario.apellido,
+      email: email !== undefined ? email : usuario.email,
       password: password || undefined, // Solo actualizar si se proporciona
-      rol: rol || usuario.rol,
-      activo: activo !== undefined ? activo : usuario.activo
+      rol: rol !== undefined ? rol : usuario.rol,
+      activo: activo !== undefined ? activo : usuario.activo,
+      cedula: cedula !== undefined ? cedula : usuario.cedula,
+      fechaNacimiento: fechaNacimiento !== undefined ? fechaNacimiento : usuario.fechaNacimiento,
+      celular: celular !== undefined ? celular : usuario.celular,
+      direccion: direccion !== undefined ? direccion : usuario.direccion,
+      perfilCompleto
     });
     
     // Obtener el usuario actualizado (sin la contraseña)
