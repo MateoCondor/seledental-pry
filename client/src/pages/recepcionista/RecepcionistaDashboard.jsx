@@ -300,7 +300,7 @@ const RecepcionistaDashboard = () => {
                             <td className="px-6 py-4 whitespace-nowrap">
                               <div className="flex items-center">
                                 <div className="flex-shrink-0 h-10 w-10">
-                                  <div className="h-10 w-10 rounded-full bg-gradient-to-r from-blue-400 to-blue-600 flex items-center justify-center">
+                                  <div className="h-10 w-10 rounded-full bg-gradient-to-r from-purple-400 to-purple-600 flex items-center justify-center">
                                     <span className="text-white font-medium text-sm">
                                       {cliente.nombre.charAt(0)}{cliente.apellido.charAt(0)}
                                     </span>
@@ -323,11 +323,10 @@ const RecepcionistaDashboard = () => {
                               <div className="text-sm text-gray-900">{cliente.cedula || 'Sin cédula'}</div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
-                              <span className={`inline-flex px-3 py-1 rounded-full text-xs font-medium ${
-                                cliente.perfilCompleto
+                              <span className={`inline-flex px-3 py-1 rounded-full text-xs font-medium ${cliente.perfilCompleto
                                   ? 'bg-green-100 text-green-800'
                                   : 'bg-yellow-100 text-yellow-800'
-                              }`}>
+                                }`}>
                                 {cliente.perfilCompleto ? 'Completo' : 'Pendiente'}
                               </span>
                             </td>

@@ -23,14 +23,9 @@ const AdminLayout = ({ children, title }) => {
   // Enlaces del menú
   const navLinks = [
     {
-      name: 'Dashboard',
+      name: 'Inicio',
       path: '/admin/dashboard',
       icon: <FiHome className="h-5 w-5" />
-    },
-    {
-      name: 'Usuarios',
-      path: '/admin/usuarios',
-      icon: <FiUsers className="h-5 w-5" />
     },
     {
       name: 'Mi Perfil',
@@ -44,7 +39,7 @@ const AdminLayout = ({ children, title }) => {
       {/* Barra lateral - Desktop */}
       <aside className="hidden lg:flex lg:flex-col lg:w-64 bg-white border-r border-gray-200 lg:sticky lg:top-0 lg:h-screen">
         {/* Logo */}
-        <div className="flex items-center h-16 px-6 border-b border-gray-200">
+        <div className="flex items-center justify-center h-16 px-6 border-b border-gray-200">
           <h1 className="text-xl font-bold text-primary">SeleDental</h1>
         </div>
 

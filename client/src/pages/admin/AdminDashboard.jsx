@@ -142,15 +142,15 @@ const AdminDashboard = () => {
     <AdminLayout>
       <div className="space-y-8">
         {/* Tarjetas de estadísticas */}
-        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-6">
           <div className="card">
             <div className="flex items-center">
               <div className="p-2 sm:p-3 rounded-full bg-orange-100 flex-shrink-0">
                 <FiUsers className="h-4 w-4 sm:h-6 sm:w-6 text-orange-600" />
               </div>
-              <div className="ml-3 sm:ml-4 min-w-0 flex-1">
-                <p className="text-xs sm:text-sm font-medium text-gray-600 truncate">Total Usuarios</p>
-                <p className="text-lg sm:text-2xl font-bold text-gray-900">{estadisticas.total}</p>
+              <div className="ml-4 min-w-0 flex-1">
+                <p className="text-sm font-medium text-gray-600 truncate">Total Usuarios</p>
+                <p className="text-2xl font-bold text-gray-900">{estadisticas.total}</p>
               </div>
             </div>
           </div>
@@ -160,9 +160,9 @@ const AdminDashboard = () => {
               <div className="p-2 sm:p-3 rounded-full bg-purple-100 flex-shrink-0">
                 <FiShield className="h-4 w-4 sm:h-6 sm:w-6 text-purple-600" />
               </div>
-              <div className="ml-3 sm:ml-4 min-w-0 flex-1">
-                <p className="text-xs sm:text-sm font-medium text-gray-600 truncate">Administradores</p>
-                <p className="text-lg sm:text-2xl font-bold text-gray-900">{estadisticas.administradores}</p>
+              <div className="ml-4 min-w-0 flex-1">
+                <p className="text-sm font-medium text-gray-600 truncate">Administradores</p>
+                <p className="text-2xl font-bold text-gray-900">{estadisticas.administradores}</p>
               </div>
             </div>
           </div>
@@ -172,9 +172,9 @@ const AdminDashboard = () => {
               <div className="p-2 sm:p-3 rounded-full bg-blue-100 flex-shrink-0">
                 <FiCalendar className="h-4 w-4 sm:h-6 sm:w-6 text-blue-600" />
               </div>
-              <div className="ml-3 sm:ml-4 min-w-0 flex-1">
-                <p className="text-xs sm:text-sm font-medium text-gray-600 truncate">Recepcionistas</p>
-                <p className="text-lg sm:text-2xl font-bold text-gray-900">{estadisticas.recepcionistas}</p>
+              <div className="ml-4 min-w-0 flex-1">
+                <p className="text-sm font-medium text-gray-600 truncate">Recepcionistas</p>
+                <p className="text-2xl font-bold text-gray-900">{estadisticas.recepcionistas}</p>
               </div>
             </div>
           </div>
@@ -184,9 +184,9 @@ const AdminDashboard = () => {
               <div className="p-2 sm:p-3 rounded-full bg-green-100 flex-shrink-0">
                 <FiUser className="h-4 w-4 sm:h-6 sm:w-6 text-green-600" />
               </div>
-              <div className="ml-3 sm:ml-4 min-w-0 flex-1">
-                <p className="text-xs sm:text-sm font-medium text-gray-600 truncate">Clientes</p>
-                <p className="text-lg sm:text-2xl font-bold text-gray-900">{estadisticas.clientes}</p>
+              <div className="ml-4 min-w-0 flex-1">
+                <p className="text-sm font-medium text-gray-600 truncate">Clientes</p>
+                <p className="text-2xl font-bold text-gray-900">{estadisticas.clientes}</p>
               </div>
             </div>
           </div>

@@ -22,32 +22,32 @@ const RecepcionistaLayout = ({ children, title }) => {
 
   // Enlaces del menú
   const navLinks = [
-    { 
-      name: 'Inicio', 
-      path: '/recepcionista/dashboard', 
-      icon: <FiHome className="h-5 w-5" /> 
+    {
+      name: 'Inicio',
+      path: '/recepcionista/dashboard',
+      icon: <FiHome className="h-5 w-5" />
     },
-    { 
-      name: 'Calendario', 
-      path: '/recepcionista/calendario', 
-      icon: <FiCalendar className="h-5 w-5" /> 
+    {
+      name: 'Calendario',
+      path: '/recepcionista/calendario',
+      icon: <FiCalendar className="h-5 w-5" />
     },
-    { 
-      name: 'Mi Perfil', 
-      path: '/recepcionista/perfil', 
-      icon: <FiUser className="h-5 w-5" /> 
+    {
+      name: 'Mi Perfil',
+      path: '/recepcionista/perfil',
+      icon: <FiUser className="h-5 w-5" />
     },
   ];
 
   return (
-     <div className="min-h-screen bg-gray-50 flex">
+    <div className="min-h-screen bg-gray-50 flex">
       {/* Barra lateral - Desktop */}
       <aside className="hidden lg:flex lg:flex-col lg:w-64 bg-white border-r border-gray-200 lg:sticky lg:top-0 lg:h-screen">
         {/* Logo */}
-        <div className="flex items-center h-16 px-6 border-b border-gray-200">
+        <div className="flex items-center justify-center h-16 px-6 border-b border-gray-200">
           <h1 className="text-xl font-bold text-primary">SeleDental</h1>
         </div>
-        
+
         {/* Navegación */}
         <div className="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
           <div className="flex-1 px-3 space-y-1">
@@ -64,7 +64,7 @@ const RecepcionistaLayout = ({ children, title }) => {
               ))}
             </nav>
           </div>
-          
+
           {/* Perfil de usuario - Fijo en la parte inferior */}
           <div className="flex-shrink-0 p-4 border-t border-gray-200">
             <div className="flex items-center">
@@ -129,7 +129,7 @@ const RecepcionistaLayout = ({ children, title }) => {
               </Link>
             ))}
           </div>
-          
+
           {/* Perfil móvil */}
           <div className="pt-4 pb-3 border-t border-gray-200">
             <div className="px-3 flex items-center">
@@ -160,7 +160,7 @@ const RecepcionistaLayout = ({ children, title }) => {
             </div>
           </div>
         </div>
-        
+
         {/* Área de contenido */}
         <main className="flex-1 overflow-y-auto">
           <div className="py-6">
