@@ -47,7 +47,7 @@ const ClienteDashboard = () => {
   }, [authUser]);
 
   return (
-    <ClienteLayout title="">
+    <ClienteLayout >
       <div className="space-y-8">
         <div className="bg-gradient-to-r from-primary to-secondary rounded-lg p-6 mb-8 text-white">
           <h1 className="text-2xl font-bold mb-2">

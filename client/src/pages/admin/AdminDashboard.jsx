@@ -139,7 +139,7 @@ const AdminDashboard = () => {
   };
 
   return (
-    <AdminLayout title="Dashboard Administrativo">
+    <AdminLayout>
       <div className="space-y-8">
         {/* Tarjetas de estadísticas */}
         <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">

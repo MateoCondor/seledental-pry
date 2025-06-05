@@ -12,21 +12,19 @@ const checkRol = require('../middlewares/checkRol');
 // Middleware de autenticación básica para todas las rutas
 router.use(auth);
 
-// Obtener todos los usuarios (solo administradores)
-router.get('/', checkRol(['administrador']), usuarioController.obtenerUsuarios);
+// Obtener todos los usuarios (administradores ven todos, recepcionistas solo clientes)
+router.get('/', checkRol(['administrador', 'recepcionista']), usuarioController.obtenerUsuarios);
 
 // Obtener un usuario específico por ID
-// Se verifica en el controlador que solo administradores o el propio usuario puedan acceder
 router.get('/:id', usuarioController.obtenerUsuarioPorId);
 
-// Crear un nuevo usuario (solo administradores)
-router.post('/', checkRol(['administrador']), usuarioController.crearUsuario);
+// Crear un nuevo usuario (administradores y recepcionistas)
+router.post('/', checkRol(['administrador', 'recepcionista']), usuarioController.crearUsuario);
 
 // Actualizar un usuario
-// Se verifica en el controlador que solo administradores o el propio usuario puedan actualizar
 router.put('/:id', usuarioController.actualizarUsuario);
 
 // Eliminar un usuario (desactivación lógica) - solo administradores
-router.delete('/:id', checkRol(['administrador']), usuarioController.eliminarUsuario);
+router.delete('/:id', checkRol(['administrador', 'recepcionista']), usuarioController.eliminarUsuario);
 
 module.exports = router;

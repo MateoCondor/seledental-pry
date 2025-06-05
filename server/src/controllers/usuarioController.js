@@ -13,13 +13,18 @@ const { successResponse, errorResponse } = require('../utils/responses');
  */
 const obtenerUsuarios = async (req, res) => {
   try {
-    // Obtener todos los usuarios excluyendo el campo password
+    let whereCondition = { activo: true };
+    
+    // Si es recepcionista, solo puede ver clientes
+    if (req.usuario.rol === 'recepcionista') {
+      whereCondition.rol = 'cliente';
+    }
+    
+    // Obtener usuarios según el rol del solicitante
     const usuarios = await Usuario.findAll({
-      where: { 
-        activo: true  // Solo obtener usuarios activos
-      },
+      where: whereCondition,
       attributes: { exclude: ['password'] },
-      order: [['createdAt', 'ASC']] // Ordenar por fecha de creación
+      order: [['createdAt', 'ASC']]
     });
     
     return successResponse(res, 200, 'Usuarios obtenidos correctamente', { 
@@ -72,6 +77,11 @@ const crearUsuario = async (req, res) => {
   try {
     const { nombre, apellido, email, password, rol, cedula, fechaNacimiento, celular, direccion } = req.body;
     
+    // Si es recepcionista, solo puede crear clientes
+    if (req.usuario.rol === 'recepcionista' && rol !== 'cliente') {
+      return errorResponse(res, 403, 'Las recepcionistas solo pueden crear clientes');
+    }
+    
     // Verificar si el correo ya está registrado
     const usuarioExistente = await Usuario.findOne({ where: { email } });
     if (usuarioExistente) {
@@ -99,7 +109,7 @@ const crearUsuario = async (req, res) => {
       nombre,
       apellido,
       email,
-      password, // Se encriptará automáticamente en el modelo
+      password,
       rol,
       activo: true,
       cedula,
@@ -120,7 +130,6 @@ const crearUsuario = async (req, res) => {
   } catch (error) {
     console.error('Error al crear usuario:', error);
     
-    // Manejar errores de validación de Sequelize
     if (error.name === 'SequelizeValidationError') {
       const errores = error.errors.map(err => ({
         campo: err.path,
@@ -149,13 +158,29 @@ const actualizarUsuario = async (req, res) => {
       return errorResponse(res, 404, 'Usuario no encontrado');
     }
     
-    // Verificar permisos: solo el propio usuario o un administrador pueden actualizar
-    if (req.usuario.id !== parseInt(id) && req.usuario.rol !== 'administrador') {
-      return errorResponse(res, 403, 'No tiene permisos para actualizar este usuario');
-    }
-    
-    // Si el usuario no es administrador, no puede cambiar su propio rol ni estado de activación
-    if (req.usuario.rol !== 'administrador') {
+    // Verificar permisos según el rol
+    if (req.usuario.rol === 'recepcionista') {
+      // Las recepcionistas solo pueden actualizar clientes
+      if (usuario.rol !== 'cliente') {
+        return errorResponse(res, 403, 'No tiene permisos para actualizar este usuario');
+      }
+      
+      // Las recepcionistas no pueden cambiar el rol
+      if (rol && rol !== 'cliente') {
+        return errorResponse(res, 403, 'No tiene permisos para cambiar el rol');
+      }
+      
+      // Las recepcionistas no pueden desactivar usuarios
+      if (activo !== undefined && activo !== usuario.activo) {
+        return errorResponse(res, 403, 'No tiene permisos para cambiar el estado de activación');
+      }
+    } else if (req.usuario.rol !== 'administrador') {
+      // Verificar permisos: solo el propio usuario o un administrador pueden actualizar
+      if (req.usuario.id !== parseInt(id)) {
+        return errorResponse(res, 403, 'No tiene permisos para actualizar este usuario');
+      }
+      
+      // Si el usuario no es administrador, no puede cambiar su propio rol ni estado de activación
       if (rol && rol !== usuario.rol) {
         return errorResponse(res, 403, 'No tiene permisos para cambiar el rol');
       }
@@ -210,7 +235,7 @@ const actualizarUsuario = async (req, res) => {
       
       perfilCompleto = !!(cedulaFinal && fechaNacimientoFinal && celularFinal && direccionFinal);
     } else {
-      perfilCompleto = true; // Administradores y recepcionistas no necesitan completar perfil adicional
+      perfilCompleto = true;
     }
     
     // Actualizar el usuario
@@ -218,7 +243,7 @@ const actualizarUsuario = async (req, res) => {
       nombre: nombre !== undefined ? nombre : usuario.nombre,
       apellido: apellido !== undefined ? apellido : usuario.apellido,
       email: email !== undefined ? email : usuario.email,
-      password: password || undefined, // Solo actualizar si se proporciona
+      password: password || undefined,
       rol: rol !== undefined ? rol : usuario.rol,
       activo: activo !== undefined ? activo : usuario.activo,
       cedula: cedula !== undefined ? cedula : usuario.cedula,
@@ -239,7 +264,6 @@ const actualizarUsuario = async (req, res) => {
   } catch (error) {
     console.error('Error al actualizar usuario:', error);
     
-    // Manejar errores de validación de Sequelize
     if (error.name === 'SequelizeValidationError') {
       const errores = error.errors.map(err => ({
         campo: err.path,
@@ -251,7 +275,6 @@ const actualizarUsuario = async (req, res) => {
     return errorResponse(res, 500, 'Error al actualizar el usuario');
   }
 };
-
 /**
  * Elimina un usuario (desactivación lógica)
  * @param {Object} req - Objeto de solicitud Express
@@ -267,18 +290,44 @@ const eliminarUsuario = async (req, res) => {
       return errorResponse(res, 404, 'Usuario no encontrado');
     }
     
-    // Verifica que no se esté intentando desactivar al usuario actual
-    if (parseInt(id) === req.usuario.id) {
-      return errorResponse(res, 400, 'No puede desactivar su propia cuenta');
+    // Verificar permisos según el rol
+    if (req.usuario.rol === 'recepcionista') {
+      // Las recepcionistas solo pueden eliminar clientes
+      if (usuario.rol !== 'cliente') {
+        return errorResponse(res, 403, 'No tiene permisos para eliminar este usuario');
+      }
+    } else if (req.usuario.rol !== 'administrador') {
+      // Solo administradores y recepcionistas pueden eliminar usuarios
+      return errorResponse(res, 403, 'No tiene permisos para eliminar usuarios');
     }
     
-    // Desactivar el usuario (eliminación lógica)
+    // Prevenir que un usuario se elimine a sí mismo
+    if (req.usuario.id === parseInt(id)) {
+      return errorResponse(res, 403, 'No puede eliminar su propio usuario');
+    }
+    
+    // Prevenir eliminar al último administrador activo
+    if (usuario.rol === 'administrador') {
+      const administradoresActivos = await Usuario.count({
+        where: { 
+          rol: 'administrador', 
+          activo: true,
+          id: { [require('sequelize').Op.ne]: id }
+        }
+      });
+      
+      if (administradoresActivos === 0) {
+        return errorResponse(res, 403, 'No se puede eliminar el último administrador del sistema');
+      }
+    }
+    
+    // Realizar eliminación lógica
     await usuario.update({ activo: false });
     
-    return successResponse(res, 200, 'Usuario desactivado correctamente');
+    return successResponse(res, 200, 'Usuario eliminado correctamente');
   } catch (error) {
     console.error('Error al eliminar usuario:', error);
-    return errorResponse(res, 500, 'Error al desactivar el usuario');
+    return errorResponse(res, 500, 'Error al eliminar el usuario');
   }
 };
 

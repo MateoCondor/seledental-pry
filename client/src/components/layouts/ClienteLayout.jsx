@@ -47,14 +47,14 @@ const ClienteLayout = ({ children, title }) => {
   return (
     <div className="min-h-screen bg-gray-50 flex">
       {/* Barra lateral - Desktop */}
-      <aside className="hidden lg:flex lg:flex-col lg:w-64 bg-white border-r border-gray-200">
+      <aside className="hidden lg:flex lg:flex-col lg:w-64 bg-white border-r border-gray-200 lg:sticky lg:top-0 lg:h-screen">
         {/* Logo */}
         <div className="flex items-center h-16 px-6 border-b border-gray-200">
           <h1 className="text-xl font-bold text-primary">SeleDental</h1>
         </div>
         
         {/* Navegación */}
-        <div className="flex-1 flex flex-col pt-5 pb-4">
+        <div className="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
           <div className="flex-1 px-3 space-y-1">
             <nav className="space-y-1">
               {navLinks.map((link) => (
@@ -70,8 +70,8 @@ const ClienteLayout = ({ children, title }) => {
             </nav>
           </div>
           
-          {/* Perfil de usuario */}
-          <div className="p-4 border-t border-gray-200">
+          {/* Perfil de usuario - Fijo en la parte inferior */}
+          <div className="flex-shrink-0 p-4 border-t border-gray-200">
             <div className="flex items-center">
               <div className="flex-shrink-0 h-10 w-10">
                 <div className="h-10 w-10 rounded-full bg-gradient-to-r from-purple-400 to-purple-600 flex items-center justify-center">

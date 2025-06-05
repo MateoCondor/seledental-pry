@@ -111,7 +111,7 @@ const RecepcionistaPerfil = () => {
   }
 
   return (
-    <RecepcionistaLayout title="Mi Perfil">
+    <RecepcionistaLayout>
       <div className="max-w-2xl mx-auto">
         <div className="bg-white rounded-xl shadow-sm border border-gray-200">
           <div className="px-6 py-4 border-b border-gray-200">
