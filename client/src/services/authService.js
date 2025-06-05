@@ -79,6 +79,62 @@ const authService = {  /**
   },
 
   /**
+   * Registra un nuevo cliente (registro público)
+   * @param {Object} userData - Datos del usuario
+   * @returns {Promise} - Respuesta con los datos del usuario creado
+   */
+  registroCliente: async (userData) => {
+    try {
+      const response = await api.post('/auth/registro-cliente', userData);
+      return {
+        success: true,
+        usuario: response.data.datos.usuario,
+        token: response.data.datos.token,
+        message: response.data.mensaje
+      };
+    } catch (error) {
+      console.error('Error en registro de cliente:', error);
+      return {
+        success: false,
+        message: error.response?.data?.mensaje || 'Error al registrar cliente'
+      };
+    }
+  },
+
+  /**
+   * Completa el perfil de un cliente
+   * @param {Object} perfilData - Datos adicionales del perfil
+   * @returns {Promise} - Respuesta con confirmación
+   */
+  completarPerfil: async (perfilData) => {
+    try {
+      const response = await api.put('/auth/completar-perfil', perfilData);
+      return {
+        success: true,
+        usuario: response.data.datos.usuario,
+        message: response.data.mensaje
+      };
+    } catch (error) {
+      console.error('Error al completar perfil:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Obtiene el perfil del usuario autenticado
+   * @returns {Promise} - Respuesta con los datos del perfil
+   */
+  obtenerPerfil: async () => {
+    try {
+      const response = await api.get('/auth/perfil');
+      return response.data;
+    } catch (error) {
+      console.error('Error al obtener perfil:', error);
+      throw error;
+    }
+  },
+
+  /**
    * Registra un nuevo usuario (solo para pruebas, normalmente los usuarios se crean por administrador)
    * @param {Object} userData - Datos del usuario
    * @returns {Promise} - Respuesta con los datos del usuario creado

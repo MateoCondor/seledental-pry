@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
 import { FiUser, FiLock, FiEye, FiEyeOff } from 'react-icons/fi';
@@ -142,7 +143,17 @@ const LoginPage = () => {
                 </span>
               ) : (
                 'Iniciar sesión'              )}
-            </button>          </div>
+            </button>          
+          
+          </div>
+          <div className="text-center">
+            <p className="text-sm text-gray-600">
+              ¿No tienes una cuenta?{' '}
+              <Link to="/registro" className="font-medium text-primary hover:text-primaryDark">
+                Regístrate aquí
+              </Link>
+            </p>
+          </div>
         </form>
       </div>
     </div>

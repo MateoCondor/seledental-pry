@@ -3,9 +3,11 @@ import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './contexts/auth/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import RoleRoute from './components/RoleRoute';
+import PerfilCompletoWrapper from './components/PerfilCompletoWrapper';
 
 // Páginas de autenticación
 import LoginPage from './pages/LoginPage';
+import RegistroClientePage from './pages/RegistroClientePage';
 
 // Páginas del administrador
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -33,13 +35,15 @@ function App() {
           {/* Ruta de inicio de sesión */}
           <Route path="/login" element={<LoginPage />} />
           
+          {/* Ruta de registro de clientes */}
+          <Route path="/registro" element={<RegistroClientePage />} />
+          
           {/* Rutas para administrador */}
           <Route path="/admin/*" element={
             <ProtectedRoute>
               <RoleRoute allowedRoles="administrador">
                 <Routes>
                   <Route path="dashboard" element={<AdminDashboard />} />
-                  {/* Aquí se pueden agregar más rutas de administrador */}
                   <Route path="usuarios" element={<AdminDashboard />} />
                   <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
                 </Routes>
@@ -51,12 +55,13 @@ function App() {
           <Route path="/recepcionista/*" element={
             <ProtectedRoute>
               <RoleRoute allowedRoles="recepcionista">
-                <Routes>
-                  <Route path="dashboard" element={<RecepcionistaDashboard />} />
-                  {/* Aquí se pueden agregar más rutas de recepcionista */}
-                  <Route path="calendario" element={<RecepcionistaDashboard />} />
-                  <Route path="*" element={<Navigate to="/recepcionista/dashboard" replace />} />
-                </Routes>
+                <PerfilCompletoWrapper>
+                  <Routes>
+                    <Route path="dashboard" element={<RecepcionistaDashboard />} />
+                    <Route path="calendario" element={<RecepcionistaDashboard />} />
+                    <Route path="*" element={<Navigate to="/recepcionista/dashboard" replace />} />
+                  </Routes>
+                </PerfilCompletoWrapper>
               </RoleRoute>
             </ProtectedRoute>
           } />
@@ -65,13 +70,14 @@ function App() {
           <Route path="/cliente/*" element={
             <ProtectedRoute>
               <RoleRoute allowedRoles="cliente">
-                <Routes>
-                  <Route path="dashboard" element={<ClienteDashboard />} />
-                  {/* Aquí se pueden agregar más rutas de cliente */}
-                  <Route path="citas" element={<ClienteDashboard />} />
-                  <Route path="historial" element={<ClienteDashboard />} />
-                  <Route path="*" element={<Navigate to="/cliente/dashboard" replace />} />
-                </Routes>
+                <PerfilCompletoWrapper>
+                  <Routes>
+                    <Route path="dashboard" element={<ClienteDashboard />} />
+                    <Route path="citas" element={<ClienteDashboard />} />
+                    <Route path="historial" element={<ClienteDashboard />} />
+                    <Route path="*" element={<Navigate to="/cliente/dashboard" replace />} />
+                  </Routes>
+                </PerfilCompletoWrapper>
               </RoleRoute>
             </ProtectedRoute>
           } />
