@@ -145,8 +145,8 @@ const AdminDashboard = () => {
         <div className="grid grid-cols-1 sm:grid-cols-4 gap-6">
           <div className="card">
             <div className="flex items-center">
-              <div className="p-2 sm:p-3 rounded-full bg-orange-100 flex-shrink-0">
-                <FiUsers className="h-4 w-4 sm:h-6 sm:w-6 text-orange-600" />
+              <div className="p-3 rounded-full bg-orange-100 flex-shrink-0">
+                <FiUsers className="h-6 w-6 text-orange-600" />
               </div>
               <div className="ml-4 min-w-0 flex-1">
                 <p className="text-sm font-medium text-gray-600 truncate">Total Usuarios</p>
@@ -157,8 +157,8 @@ const AdminDashboard = () => {
 
           <div className="card">
             <div className="flex items-center">
-              <div className="p-2 sm:p-3 rounded-full bg-purple-100 flex-shrink-0">
-                <FiShield className="h-4 w-4 sm:h-6 sm:w-6 text-purple-600" />
+              <div className="p-3 rounded-full bg-purple-100 flex-shrink-0">
+                <FiShield className="h-6 w-6 text-purple-600" />
               </div>
               <div className="ml-4 min-w-0 flex-1">
                 <p className="text-sm font-medium text-gray-600 truncate">Administradores</p>
@@ -169,8 +169,8 @@ const AdminDashboard = () => {
 
           <div className="card">
             <div className="flex items-center">
-              <div className="p-2 sm:p-3 rounded-full bg-blue-100 flex-shrink-0">
-                <FiCalendar className="h-4 w-4 sm:h-6 sm:w-6 text-blue-600" />
+              <div className="p-3 rounded-full bg-blue-100 flex-shrink-0">
+                <FiCalendar className="h-6 w-6 text-blue-600" />
               </div>
               <div className="ml-4 min-w-0 flex-1">
                 <p className="text-sm font-medium text-gray-600 truncate">Recepcionistas</p>
@@ -181,8 +181,8 @@ const AdminDashboard = () => {
 
           <div className="card">
             <div className="flex items-center">
-              <div className="p-2 sm:p-3 rounded-full bg-green-100 flex-shrink-0">
-                <FiUser className="h-4 w-4 sm:h-6 sm:w-6 text-green-600" />
+              <div className="p-3 rounded-full bg-green-100 flex-shrink-0">
+                <FiUser className="h-6 w-6 text-green-600" />
               </div>
               <div className="ml-4 min-w-0 flex-1">
                 <p className="text-sm font-medium text-gray-600 truncate">Clientes</p>
