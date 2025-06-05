@@ -37,6 +37,11 @@ const ClienteLayout = ({ children, title }) => {
       path: '/cliente/historial', 
       icon: <FiFileText className="h-5 w-5" /> 
     },
+    { 
+      name: 'Mi Perfil', 
+      path: '/cliente/perfil', 
+      icon: <FiUser className="h-5 w-5" /> 
+    },
   ];
 
   return (

@@ -21,11 +21,11 @@ const RecepcionistaDashboard = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);  // Función para cargar los datos del perfil
   const loadPerfil = async () => {
     if (!authUser?.id) return;
-    
+
     setLoading(true);
     try {
       const data = await usuarioService.getUsuario(authUser.id);
-      
+
       if (data && data.success && data.datos && data.datos.usuario) {
         setPerfil(data.datos.usuario);
       } else {
@@ -35,7 +35,7 @@ const RecepcionistaDashboard = () => {
     } catch (error) {
       console.error('Error al cargar el perfil:', error);
       toast.error(
-        error.response?.data?.mensaje || 
+        error.response?.data?.mensaje ||
         'Error al cargar los datos del perfil'
       );
     } finally {
@@ -50,7 +50,7 @@ const RecepcionistaDashboard = () => {
   const handleUpdatePerfil = async (userData) => {
     try {
       const response = await usuarioService.updateUsuario(authUser.id, userData);
-      
+
       if (response && response.success) {
         toast.success('Perfil actualizado correctamente');
         // Recargamos los datos del perfil
@@ -64,8 +64,8 @@ const RecepcionistaDashboard = () => {
     } catch (error) {
       console.error('Error al actualizar el perfil:', error);
       toast.error(
-        error.response?.data?.mensaje || 
-        error.response?.data?.error || 
+        error.response?.data?.mensaje ||
+        error.response?.data?.error ||
         'Error al actualizar el perfil'
       );
     }
@@ -78,9 +78,9 @@ const RecepcionistaDashboard = () => {
           <h1 className="text-2xl font-bold mb-2">
             Bienvenido, {perfil?.nombre || ''}
           </h1>
-          <p>Esta es tu área personal donde podrás gestionar .....</p>
+          <p>Esta es tu área personal donde tendrás diferentes funcionalidades disponibles.</p>
         </div>
-        
+
         {loading ? (
           <div className="flex justify-center py-8">
             <svg className="animate-spin h-8 w-8 text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -90,45 +90,21 @@ const RecepcionistaDashboard = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Tarjeta de perfil */}
-            <div className="card">
-              <div className="flex justify-between items-start mb-4">
-                <h2 className="text-xl font-semibold text-gray-800">Mi Perfil</h2>
-                <button
-                  onClick={() => setIsModalOpen(true)}
-                  className="p-1 text-blue-600 hover:text-blue-800 rounded"
-                  title="Editar Perfil"
-                >
-                  <FiEdit2 className="h-5 w-5" />
-                </button>
+            {/* Mensaje de funcionalidad en desarrollo */}
+            <div className="card col-span-1 md:col-span-2 bg-yellow-50 border border-yellow-200">
+              <div className="flex items-center">
+                <svg className="h-6 w-6 text-yellow-500 mr-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <p className="text-yellow-700">
+                  Más funcionalidades para recepcionistas estarán disponibles próximamente. Pronto tendrás acceso a más funcionalidades.
+                </p>
               </div>
-              
-              <div className="space-y-4">
-                <div>
-                  <p className="text-sm text-gray-500">Nombre completo</p>
-                  <p className="font-medium">{perfil?.nombre} {perfil?.apellido}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-500">Correo electrónico</p>
-                  <p className="font-medium">{perfil?.email}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-500">Rol</p>
-                  <p className="font-medium capitalize">{perfil?.rol}</p>
-                </div>
-              </div>
-            </div>
-            
-            {/* Aquí puedes agregar más tarjetas para otras funcionalidades */}
-            <div className="card bg-gray-50 flex items-center justify-center">
-              <p className="text-gray-500 text-center">
-                Más funcionalidades para recepcionistas estarán disponibles próximamente
-              </p>
             </div>
           </div>
         )}
       </div>
-      
+
       {/* Modal para editar perfil */}
       <PerfilModal
         isOpen={isModalOpen}

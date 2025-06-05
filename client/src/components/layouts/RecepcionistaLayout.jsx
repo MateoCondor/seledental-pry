@@ -32,6 +32,11 @@ const RecepcionistaLayout = ({ children, title }) => {
       path: '/recepcionista/calendario', 
       icon: <FiCalendar className="h-5 w-5" /> 
     },
+    { 
+      name: 'Mi Perfil', 
+      path: '/recepcionista/perfil', 
+      icon: <FiUser className="h-5 w-5" /> 
+    },
   ];
 
   return (

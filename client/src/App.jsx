@@ -11,12 +11,15 @@ import RegistroClientePage from './pages/RegistroClientePage';
 
 // Páginas del administrador
 import AdminDashboard from './pages/admin/AdminDashboard';
+import AdminPerfil from './pages/admin/AdminPerfil';
 
 // Páginas del recepcionista
 import RecepcionistaDashboard from './pages/recepcionista/RecepcionistaDashboard';
+import RecepcionistaPerfil from './pages/recepcionista/RecepcionistaPerfil';
 
 // Páginas del cliente
 import ClienteDashboard from './pages/cliente/ClienteDashboard';
+import ClientePerfil from './pages/cliente/ClientePerfil';
 
 /**
  * Componente principal de la aplicación
@@ -45,6 +48,7 @@ function App() {
                 <Routes>
                   <Route path="dashboard" element={<AdminDashboard />} />
                   <Route path="usuarios" element={<AdminDashboard />} />
+                  <Route path="perfil" element={<AdminPerfil />} />
                   <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
                 </Routes>
               </RoleRoute>
@@ -59,6 +63,7 @@ function App() {
                   <Routes>
                     <Route path="dashboard" element={<RecepcionistaDashboard />} />
                     <Route path="calendario" element={<RecepcionistaDashboard />} />
+                    <Route path="perfil" element={<RecepcionistaPerfil />} />
                     <Route path="*" element={<Navigate to="/recepcionista/dashboard" replace />} />
                   </Routes>
                 </PerfilCompletoWrapper>
@@ -75,6 +80,7 @@ function App() {
                     <Route path="dashboard" element={<ClienteDashboard />} />
                     <Route path="citas" element={<ClienteDashboard />} />
                     <Route path="historial" element={<ClienteDashboard />} />
+                    <Route path="perfil" element={<ClientePerfil />} />
                     <Route path="*" element={<Navigate to="/cliente/dashboard" replace />} />
                   </Routes>
                 </PerfilCompletoWrapper>

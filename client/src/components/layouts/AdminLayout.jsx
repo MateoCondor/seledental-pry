@@ -32,6 +32,11 @@ const AdminLayout = ({ children, title }) => {
       path: '/admin/usuarios',
       icon: <FiUsers className="h-5 w-5" />
     },
+    {
+      name: 'Mi Perfil',
+      path: '/admin/perfil',
+      icon: <FiUser className="h-5 w-5" />
+    },
   ];
 
   return (
