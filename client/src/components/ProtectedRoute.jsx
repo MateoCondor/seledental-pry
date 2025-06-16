@@ -1,5 +1,6 @@
 import { Navigate } from 'react-router-dom';
 import useAuth from '../hooks/useAuth';
+import PropTypes from 'prop-types';
 
 /**
  * Componente para proteger rutas y permitir acceso solo a usuarios autenticados
@@ -21,6 +22,10 @@ const ProtectedRoute = ({ children }) => {
 
   // Si está autenticado, mostramos los children
   return children;
+};
+
+ProtectedRoute.propTypes = {
+  children: PropTypes.node.isRequired,
 };
 
 export default ProtectedRoute;

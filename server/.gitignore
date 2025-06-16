@@ -115,3 +115,10 @@ Thumbs.db
 # Uploads (si tienes un directorio de archivos subidos)
 uploads/
 public/uploads/
+
+# Docker
+docker-compose.yml  # Excluye el archivo compose principal (opcional, si no quieres compartirlo)
+docker-compose.*.yml  # Excluye variantes del compose (ej: docker-compose.prod.yml)
+.env  # Archivo de variables de entorno (¡NUNCA subirlo!)
+Dockerfile  # Si no quieres compartir la configuración de la imagen
+docker-compose.override.yml  # Configuraciones locales

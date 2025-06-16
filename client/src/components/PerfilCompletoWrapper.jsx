@@ -3,6 +3,7 @@ import useAuth from '../hooks/useAuth';
 import authService from '../services/authService';
 import CompletarPerfilModal from './modals/CompletarPerfilModal';
 import { toast } from 'react-hot-toast';
+import PropTypes from 'prop-types';
 
 /**
  * Wrapper que verifica si el cliente necesita completar su perfil
@@ -25,7 +26,8 @@ const PerfilCompletoWrapper = ({ children }) => {
 
       try {
         const response = await authService.obtenerPerfil();
-        if (response.datos && response.datos.usuario) {
+        //if (response.datos && response.datos.usuario) {
+        if (response.datos?.usuario) {
           const completo = response.datos.usuario.perfilCompleto;
           setPerfilCompleto(completo);
           
@@ -112,6 +114,10 @@ const PerfilCompletoWrapper = ({ children }) => {
       />
     </>
   );
+};
+
+PerfilCompletoWrapper.propTypes = {
+  children: PropTypes.node.isRequired,
 };
 
 export default PerfilCompletoWrapper;
