@@ -21,6 +21,10 @@ import RecepcionistaPerfil from './pages/recepcionista/RecepcionistaPerfil';
 import ClienteDashboard from './pages/cliente/ClienteDashboard';
 import ClientePerfil from './pages/cliente/ClientePerfil';
 
+// Páginas del odontólogo
+import OdontologoDashboard from './pages/odontologo/OdontologoDashboard';
+import OdontologoPerfil from './pages/odontologo/OdontologoPerfil';
+
 /**
  * Componente principal de la aplicación
  * Contiene las rutas y la lógica de autenticación
@@ -70,7 +74,21 @@ function App() {
               </RoleRoute>
             </ProtectedRoute>
           } />
-          
+
+          {/* Rutas para odontólogo */}
+          <Route path="/odontologo/*" element={
+            <ProtectedRoute>
+              <RoleRoute allowedRoles="odontologo">
+                <Routes>
+                  <Route path="dashboard" element={<OdontologoDashboard />} />
+                  <Route path="citas" element={<OdontologoDashboard />} />
+                  <Route path="perfil" element={<OdontologoPerfil />} />
+                  <Route path="*" element={<Navigate to="/odontologo/dashboard" replace />} />
+                </Routes>
+              </RoleRoute>
+            </ProtectedRoute>
+          } />
+
           {/* Rutas para cliente */}
           <Route path="/cliente/*" element={
             <ProtectedRoute>

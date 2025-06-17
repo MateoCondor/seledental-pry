@@ -111,6 +111,9 @@ export const AuthProvider = ({ children }) => {
       case 'cliente':
         navigate('/cliente/dashboard');
         break;
+      case 'odontologo':
+        navigate('/odontologo/dashboard');
+        break;
       default:
         navigate('/login');
     }

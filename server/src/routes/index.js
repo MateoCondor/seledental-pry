@@ -9,10 +9,13 @@ const router = express.Router();
 // Importar rutas específicas
 const authRoutes = require('./authRoutes');
 const usuarioRoutes = require('./usuarioRoutes');
+const odontologoRoutes = require('./odontologoRoutes');
+
 
 // Configurar rutas
 router.use('/auth', authRoutes);
 router.use('/usuarios', usuarioRoutes);
+router.use('/odontologo', odontologoRoutes);
 
 // Ruta base para verificar que la API está funcionando
 router.get('/', (req, res) => {

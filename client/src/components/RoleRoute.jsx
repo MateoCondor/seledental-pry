@@ -33,6 +33,8 @@ const RoleRoute = ({ children, allowedRoles }) => {
         return <Navigate to="/recepcionista/dashboard" replace />;
       case 'cliente':
         return <Navigate to="/cliente/dashboard" replace />;
+      case 'odontologo':
+        return <Navigate to="/odontologo/dashboard" replace />;
       default:
         return <Navigate to="/login" replace />;
     }
