@@ -26,7 +26,6 @@ const PerfilCompletoWrapper = ({ children }) => {
 
       try {
         const response = await authService.obtenerPerfil();
-        //if (response.datos && response.datos.usuario) {
         if (response.datos?.usuario) {
           const completo = response.datos.usuario.perfilCompleto;
           setPerfilCompleto(completo);

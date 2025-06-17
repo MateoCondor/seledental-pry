@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { FiMenu, FiX, FiUser, FiLogOut, FiUsers, FiHome } from 'react-icons/fi';
+import { FiMenu, FiX, FiUser, FiLogOut, FiHome } from 'react-icons/fi';
 import useAuth from '../../hooks/useAuth';
 
 /**

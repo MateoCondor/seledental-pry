@@ -1,6 +1,6 @@
 import { Navigate } from 'react-router-dom';
 import useAuth from '../hooks/useAuth';
-
+import PropTypes from 'prop-types';
 /**
  * Componente para proteger rutas según el rol del usuario
  * @param {Object} props - Propiedades del componente
@@ -40,6 +40,14 @@ const RoleRoute = ({ children, allowedRoles }) => {
 
   // Si el rol está permitido, mostramos los children
   return children;
+};
+
+RoleRoute.propTypes = {
+  children: PropTypes.node.isRequired,
+   allowedRoles: PropTypes.oneOfType([
+    PropTypes.string,
+    PropTypes.arrayOf(PropTypes.string)
+  ]).isRequired,
 };
 
 export default RoleRoute;
