@@ -2,5 +2,5 @@ projectKey=SeleDental
 serverUrl=http://localhost:9000
 serverVersion=25.1.0.102122
 dashboardUrl=http://localhost:9000/dashboard?id=SeleDental
-ceTaskId=031ccc79-c489-4302-b923-866834d1a33e
-ceTaskUrl=http://localhost:9000/api/ce/task?id=031ccc79-c489-4302-b923-866834d1a33e
+ceTaskId=587eee0a-de13-4ac7-8dc6-038c6dfecfb8
+ceTaskUrl=http://localhost:9000/api/ce/task?id=587eee0a-de13-4ac7-8dc6-038c6dfecfb8

@@ -2,6 +2,7 @@ import { Fragment, useEffect } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { useForm } from 'react-hook-form';
+import PropTypes from 'prop-types';
 
 /**
  * Modal para crear o editar usuarios
@@ -237,4 +238,25 @@ const UsuarioModal = ({ isOpen, onClose, onSave, usuario, currentUser }) => {
   );
 };
 
+UsuarioModal.propTypes = {
+  isOpen: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+  onSave: PropTypes.func.isRequired,
+  usuario: PropTypes.shape({
+    nombre: PropTypes.string,
+    apellido: PropTypes.string,
+    email: PropTypes.string,
+    rol: PropTypes.string,
+    id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    // Agrega más propiedades si las usas
+  }),
+  currentUser: PropTypes.shape({
+    id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    nombre: PropTypes.string,
+    apellido: PropTypes.string,
+    rol: PropTypes.string,
+    email: PropTypes.string,
+    // Agrega más propiedades si las usas
+  }),
+};
 export default UsuarioModal;

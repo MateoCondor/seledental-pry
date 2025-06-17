@@ -1,6 +1,7 @@
 import { Fragment } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { ExclamationTriangleIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import PropTypes from 'prop-types';
 
 /**
  * Modal de confirmación general
@@ -96,6 +97,15 @@ const ConfirmModal = ({
       </Dialog>
     </Transition>
   );
+};
+
+ConfirmModal.propTypes = {
+  isOpen: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+  onConfirm: PropTypes.func.isRequired,
+  title: PropTypes.string,
+  message: PropTypes.string,
+  confirmButtonText: PropTypes.string,
 };
 
 export default ConfirmModal;
