@@ -1,9 +1,9 @@
 import { Fragment, useEffect } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
-import { XMarkIcon, InformationCircleIcon } from '@heroicons/react/24/outline';
+import { InformationCircleIcon } from '@heroicons/react/24/outline';
 import { useForm } from 'react-hook-form';
 import { FiUser, FiCalendar, FiPhone, FiMapPin, FiSave } from 'react-icons/fi';
-
+import PropTypes from 'prop-types';
 /**
  * Modal para completar perfil de cliente
  * @param {Object} props - Propiedades del componente
@@ -259,6 +259,19 @@ const CompletarPerfilModal = ({ isOpen, onClose, onSave, user, isLoading = false
       </Dialog>
     </Transition>
   );
+};
+
+CompletarPerfilModal.propTypes = {
+  isOpen: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+  onSave: PropTypes.func.isRequired,
+  user: PropTypes.shape({
+    nombre: PropTypes.string,
+    apellido: PropTypes.string,
+    email: PropTypes.string,
+    // Agrega más propiedades si las usas en el modal
+  }),
+  isLoading: PropTypes.bool,
 };
 
 export default CompletarPerfilModal;

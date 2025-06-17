@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { FiX, FiUser, FiMail, FiPhone, FiMapPin, FiCalendar } from 'react-icons/fi';
-
+import PropTypes from 'prop-types';
 /**
  * Modal para crear/editar clientes (específico para recepcionistas)
  * @param {Object} props - Propiedades del componente
@@ -78,6 +78,14 @@ const ClienteModal = ({ isOpen, onClose, onSave, cliente }) => {
   }, [isOpen, reset]);
 
   if (!isOpen) return null;
+  let buttonText;
+  if (isLoading) {
+    buttonText = 'Guardando...';
+  } else if (cliente) {
+    buttonText = 'Actualizar';
+  } else {
+    buttonText = 'Crear';
+  }
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
@@ -337,7 +345,7 @@ const ClienteModal = ({ isOpen, onClose, onSave, cliente }) => {
                   disabled={isLoading}
                   className="px-4 py-2 text-sm font-medium text-white bg-primary border border-transparent rounded-md hover:bg-primaryDark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isLoading ? 'Guardando...' : (cliente ? 'Actualizar' : 'Crear')}
+                  {buttonText}
                 </button>
               </div>
             </form>
@@ -346,6 +354,21 @@ const ClienteModal = ({ isOpen, onClose, onSave, cliente }) => {
       </div>
     </div>
   );
+};
+
+ClienteModal.propTypes = {
+  isOpen: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+  onSave: PropTypes.func.isRequired,
+  cliente: PropTypes.shape({
+    apellido: PropTypes.string,
+    nombre: PropTypes.string,
+    email: PropTypes.string,
+    cedula: PropTypes.string,
+    fechaNacimiento: PropTypes.string,
+    celular: PropTypes.string,
+    direccion: PropTypes.string,
+  }),
 };
 
 export default ClienteModal;

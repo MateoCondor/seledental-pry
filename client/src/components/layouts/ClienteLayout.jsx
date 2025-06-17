@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FiMenu, FiX, FiUser, FiLogOut, FiHome, FiCalendar, FiFileText } from 'react-icons/fi';
 import useAuth from '../../hooks/useAuth';
+import PropTypes from 'prop-types';
 
 /**
  * Layout para páginas de cliente
@@ -178,6 +179,11 @@ const ClienteLayout = ({ children, title }) => {
       </div>
     </div>
   );
+};
+
+ClienteLayout.propTypes = {
+  children: PropTypes.node.isRequired,
+  title: PropTypes.string.isRequired,
 };
 
 export default ClienteLayout;

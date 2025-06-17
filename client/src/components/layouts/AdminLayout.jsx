@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FiMenu, FiX, FiUser, FiLogOut, FiHome } from 'react-icons/fi';
 import useAuth from '../../hooks/useAuth';
+import PropTypes from 'prop-types';
 
 /**
  * Layout para páginas de administrador
@@ -168,6 +169,11 @@ const AdminLayout = ({ children, title }) => {
       </div>
     </div>
   );
+};
+
+AdminLayout.propTypes = {
+  children: PropTypes.node.isRequired,
+  title: PropTypes.string.isRequired,
 };
 
 export default AdminLayout;

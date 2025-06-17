@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FiMenu, FiX, FiUser, FiLogOut, FiHome, FiCalendar } from 'react-icons/fi';
 import useAuth from '../../hooks/useAuth';
+import PropTypes from 'prop-types';
 
 /**
  * Layout para páginas de recepcionista
@@ -173,6 +174,11 @@ const RecepcionistaLayout = ({ children, title }) => {
       </div>
     </div>
   );
+};
+
+RecepcionistaLayout.propTypes = {
+  children: PropTypes.node.isRequired,
+  title: PropTypes.string.isRequired,
 };
 
 export default RecepcionistaLayout;
