@@ -75,6 +75,21 @@ const Cita = sequelize.define('Cita', {
     type: DataTypes.TEXT,
     allowNull: true
   },
+  motivoReagendamiento: {
+    type: DataTypes.TEXT,
+    allowNull: true,
+    comment: 'Motivo del reagendamiento'
+  },
+  fechaAnterior: {
+    type: DataTypes.DATE,
+    allowNull: true,
+    comment: 'Fecha anterior antes del reagendamiento'
+  },
+  fechaReagendamiento: {
+    type: DataTypes.DATE,
+    allowNull: true,
+    comment: 'Fecha en que se realizó el reagendamiento'
+  },
   notasOdontologo: {
     type: DataTypes.TEXT,
     allowNull: true,

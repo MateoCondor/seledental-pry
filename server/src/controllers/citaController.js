@@ -406,10 +406,152 @@ const cancelarCita = async (req, res) => {
   }
 };
 
+/**
+ * Reagenda una cita existente
+ * @param {Object} req - Objeto de solicitud Express
+ * @param {Object} res - Objeto de respuesta Express
+ */
+const reagendarCita = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { fechaHora, motivoReagendamiento } = req.body;
+    const usuarioId = req.usuario.id;
+
+    // Buscar la cita existente
+    const cita = await Cita.findByPk(id);
+    
+    if (!cita) {
+      return errorResponse(res, 404, 'Cita no encontrada');
+    }
+
+    // Verificar permisos - solo el cliente propietario o personal autorizado
+    if (req.usuario.rol === 'cliente' && cita.clienteId !== usuarioId) {
+      return errorResponse(res, 403, 'No tiene permisos para reagendar esta cita');
+    }
+
+    // Verificar que la cita se pueda reagendar
+    if (['completada', 'cancelada', 'no_asistio'].includes(cita.estado)) {
+      return errorResponse(res, 400, 'No se puede reagendar una cita en este estado');
+    }
+
+    // Validar que la nueva fecha sea válida
+    if (!fechaHora) {
+      return errorResponse(res, 400, 'La nueva fecha y hora son requeridas');
+    }
+
+    // Parsear la nueva fecha
+    const [fechaParte, horaParte] = fechaHora.split('T');
+    const [año, mes, dia] = fechaParte.split('-').map(Number);
+    const [hora, minuto] = horaParte.split(':').map(Number);
+    
+    // Crear fecha en timezone local
+    const nuevaFechaCita = new Date(año, mes - 1, dia, hora, minuto, 0, 0);
+    const ahora = new Date();
+
+    if (nuevaFechaCita <= ahora) {
+      return errorResponse(res, 400, 'La nueva fecha y hora debe ser futura');
+    }
+
+    // Verificar tiempo mínimo para reagendamiento (24 horas antes de la cita original)
+    const fechaOriginal = new Date(cita.fechaHora);
+    const horasRestantes = (fechaOriginal - ahora) / (1000 * 60 * 60);
+    
+    if (horasRestantes < 24 && req.usuario.rol === 'cliente') {
+      return errorResponse(res, 400, 'Las citas deben reagendarse con al menos 24 horas de anticipación');
+    }
+
+    // Verificar disponibilidad del nuevo horario
+    const fechaInicio = new Date(año, mes - 1, dia, 0, 0, 0, 0);
+    const fechaFin = new Date(año, mes - 1, dia, 23, 59, 59, 999);
+
+    const citasExistentes = await Cita.findAll({
+      where: {
+        fechaHora: {
+          [Op.between]: [fechaInicio, fechaFin]
+        },
+        estado: {
+          [Op.notIn]: ['cancelada', 'no_asistio']
+        },
+        id: {
+          [Op.ne]: id // Excluir la cita actual del chequeo
+        }
+      }
+    });
+
+    // Verificar conflicto de horario (mismo algoritmo que crear cita)
+    const tieneConflicto = citasExistentes.some(citaExistente => {
+      const horaExistente = citaExistente.fechaHora.getHours();
+      const minutoExistente = citaExistente.fechaHora.getMinutes();
+
+      const finNuevaCitaHora = minuto === 30 ? hora + 1 : hora;
+      const finNuevaCitaMinuto = minuto === 30 ? 0 : 30;
+
+      const finCitaExistenteHora = minutoExistente === 30 ? horaExistente + 1 : horaExistente;
+      const finCitaExistenteMinuto = minutoExistente === 30 ? 0 : 30;
+
+      const inicioNueva = hora * 60 + minuto;
+      const finNueva = finNuevaCitaHora * 60 + finNuevaCitaMinuto;
+
+      const inicioExistente = horaExistente * 60 + minutoExistente;
+      const finExistente = finCitaExistenteHora * 60 + finCitaExistenteMinuto;
+
+      return (inicioNueva < finExistente && finNueva > inicioExistente);
+    });
+
+    if (tieneConflicto) {
+      return errorResponse(res, 400, 'El nuevo horario seleccionado no está disponible');
+    }
+
+    // Guardar la fecha anterior para histórico
+    const fechaAnterior = cita.fechaHora;
+
+    // Actualizar la cita con la nueva fecha
+    await cita.update({
+      fechaHora: nuevaFechaCita,
+      estado: 'pendiente', // Resetear estado a pendiente
+      motivoReagendamiento: motivoReagendamiento || 'Reagendada por el usuario',
+      fechaAnterior: fechaAnterior, // Guardar fecha anterior
+      fechaReagendamiento: new Date()
+    });
+
+    console.log('Cita reagendada exitosamente:', {
+      id: cita.id,
+      fechaAnterior: fechaAnterior,
+      fechaNueva: nuevaFechaCita
+    });
+
+    // Notificar cambios en horarios vía WebSocket para ambas fechas
+    const fechaAnteriorString = `${fechaAnterior.getFullYear()}-${String(fechaAnterior.getMonth() + 1).padStart(2, '0')}-${String(fechaAnterior.getDate()).padStart(2, '0')}`;
+    const fechaNuevaString = fechaParte;
+
+    notificarCambioHorarios(fechaAnteriorString); // Liberar horario anterior
+    notificarCambioHorarios(fechaNuevaString);    // Ocupar nuevo horario
+
+    // Obtener la cita actualizada con todos los datos
+    const citaReagendada = await Cita.findByPk(id, {
+      include: [
+        {
+          model: Usuario,
+          as: 'cliente',
+          attributes: ['id', 'nombre', 'apellido', 'email', 'celular']
+        }
+      ]
+    });
+
+    return successResponse(res, 200, 'Cita reagendada correctamente', { 
+      cita: citaReagendada 
+    });
+  } catch (error) {
+    console.error('Error al reagendar cita:', error);
+    return errorResponse(res, 500, 'Error al reagendar la cita');
+  }
+};
+
 module.exports = {
   obtenerCategorias,
   obtenerHorariosDisponibles,
   crearCita,
   obtenerCitasCliente,
-  cancelarCita
+  cancelarCita,
+  reagendarCita
 };

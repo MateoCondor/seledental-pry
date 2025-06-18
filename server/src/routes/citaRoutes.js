@@ -22,6 +22,7 @@ router.get('/horarios-disponibles', citaController.obtenerHorariosDisponibles);
 router.post('/', checkRol(['cliente']), citaController.crearCita);
 router.get('/mis-citas', checkRol(['cliente']), citaController.obtenerCitasCliente);
 router.put('/:id/cancelar', checkRol(['cliente', 'recepcionista', 'administrador']), citaController.cancelarCita);
+router.put('/:id/reagendar', checkRol(['cliente', 'recepcionista', 'administrador']), citaController.reagendarCita);
 
 // Aquí se agregarán más rutas para odontólogos y administradores
 // router.get('/odontologo', checkRol(['odontologo']), citaController.obtenerCitasOdontologo);
