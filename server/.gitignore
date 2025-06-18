@@ -122,3 +122,9 @@ docker-compose.*.yml  # Excluye variantes del compose (ej: docker-compose.prod.y
 .env  # Archivo de variables de entorno (¡NUNCA subirlo!)
 Dockerfile  # Si no quieres compartir la configuración de la imagen
 docker-compose.override.yml  # Configuraciones locales
+
+
+/server/postgres_data/
+
+echo "server/postgres_data/" >> .gitignore
+echo ".scannerwork/" >> .gitignore

@@ -179,6 +179,7 @@ const UsuarioModal = ({ isOpen, onClose, onSave, usuario, currentUser }) => {
                       >
                         <option value="administrador">Administrador</option>
                         <option value="recepcionista">Recepcionista</option>
+                        <option value="odontologo">Odontólogo</option>
                         <option value="cliente">Cliente</option>
                       </select>
                       {errors.rol && (

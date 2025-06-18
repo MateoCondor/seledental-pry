@@ -97,7 +97,7 @@ const crearUsuario = async (req, res) => {
     }
     
     // Validar el rol
-    const rolesValidos = ['administrador', 'recepcionista', 'cliente'];
+    const rolesValidos = ['administrador', 'recepcionista', 'cliente', 'odontologo'];
     if (!rolesValidos.includes(rol)) {
       return errorResponse(res, 400, 'Rol no válido', { 
         rolesValidos 
@@ -174,6 +174,19 @@ const actualizarUsuario = async (req, res) => {
       if (activo !== undefined && activo !== usuario.activo) {
         return errorResponse(res, 403, 'No tiene permisos para cambiar el estado de activación');
       }
+    } else if (req.usuario.rol === 'odontologo') {
+      // Los odontólogos solo pueden actualizar su propio perfil
+      if (req.usuario.id !== parseInt(id)) {
+        return errorResponse(res, 403, 'Solo puede actualizar su propio perfil');
+      }
+      
+      // Los odontólogos no pueden cambiar su rol ni estado de activación
+      if (rol && rol !== usuario.rol) {
+        return errorResponse(res, 403, 'No tiene permisos para cambiar el rol');
+      }
+      if (activo !== undefined && activo !== usuario.activo) {
+        return errorResponse(res, 403, 'No tiene permisos para cambiar el estado de activación');
+      }
     } else if (req.usuario.rol !== 'administrador') {
       // Verificar permisos: solo el propio usuario o un administrador pueden actualizar
       if (req.usuario.id !== parseInt(id)) {
@@ -217,7 +230,7 @@ const actualizarUsuario = async (req, res) => {
     
     // Validar el rol (si se proporciona)
     if (rol) {
-      const rolesValidos = ['administrador', 'recepcionista', 'cliente'];
+      const rolesValidos = ['administrador', 'recepcionista', 'cliente', 'odontologo'];
       if (!rolesValidos.includes(rol)) {
         return errorResponse(res, 400, 'Rol no válido', { 
           rolesValidos 

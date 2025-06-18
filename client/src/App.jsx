@@ -20,6 +20,12 @@ import RecepcionistaPerfil from './pages/recepcionista/RecepcionistaPerfil';
 // Páginas del cliente
 import ClienteDashboard from './pages/cliente/ClienteDashboard';
 import ClientePerfil from './pages/cliente/ClientePerfil';
+import AgendarCita from './pages/cliente/AgendarCita';
+import MisCitas from './pages/cliente/MisCitas';
+
+// Páginas del odontólogo
+import OdontologoDashboard from './pages/odontologo/OdontologoDashboard';
+import OdontologoPerfil from './pages/odontologo/OdontologoPerfil';
 
 /**
  * Componente principal de la aplicación
@@ -70,7 +76,21 @@ function App() {
               </RoleRoute>
             </ProtectedRoute>
           } />
-          
+
+          {/* Rutas para odontólogo */}
+          <Route path="/odontologo/*" element={
+            <ProtectedRoute>
+              <RoleRoute allowedRoles="odontologo">
+                <Routes>
+                  <Route path="dashboard" element={<OdontologoDashboard />} />
+                  <Route path="citas" element={<OdontologoDashboard />} />
+                  <Route path="perfil" element={<OdontologoPerfil />} />
+                  <Route path="*" element={<Navigate to="/odontologo/dashboard" replace />} />
+                </Routes>
+              </RoleRoute>
+            </ProtectedRoute>
+          } />
+
           {/* Rutas para cliente */}
           <Route path="/cliente/*" element={
             <ProtectedRoute>
@@ -78,7 +98,8 @@ function App() {
                 <PerfilCompletoWrapper>
                   <Routes>
                     <Route path="dashboard" element={<ClienteDashboard />} />
-                    <Route path="citas" element={<ClienteDashboard />} />
+                    <Route path="citas" element={<MisCitas />} />
+                    <Route path="agendar-cita" element={<AgendarCita />} />
                     <Route path="historial" element={<ClienteDashboard />} />
                     <Route path="perfil" element={<ClientePerfil />} />
                     <Route path="*" element={<Navigate to="/cliente/dashboard" replace />} />

@@ -109,6 +109,8 @@ const CompletarPerfilModal = ({ isOpen, onClose, onSave, user, isLoading = false
                           type="text"
                           required
                           className="input pl-10"
+                          pattern="[0-9]*" 
+                          title="Solo se permiten números (sin letras ni símbolos)" 
                           placeholder="Ej: 1234567890"
                           {...register('cedula', { 
                             required: 'La cédula es requerida',
@@ -147,9 +149,16 @@ const CompletarPerfilModal = ({ isOpen, onClose, onSave, user, isLoading = false
                             required: 'La fecha de nacimiento es requerida',
                             validate: value => {
                               const today = new Date();
+                              today.setHours(0, 0, 0, 0); // Ignora la hora
                               const birthDate = new Date(value);
+                              if (birthDate > today) {
+                                return 'La fecha de nacimiento no puede ser posterior a hoy';
+                              }
                               const age = today.getFullYear() - birthDate.getFullYear();
-                              return age >= 0 && age <= 120 || 'Por favor, ingresa una fecha de nacimiento válida';
+                              if (age < 0.5 || age > 120) {
+                                return 'Por favor, ingresa una fecha de nacimiento válida';
+                              }
+                              return true;
                             }
                           })}
                         />
@@ -175,6 +184,8 @@ const CompletarPerfilModal = ({ isOpen, onClose, onSave, user, isLoading = false
                           required
                           className="input pl-10"
                           placeholder="Ej: 0987654321"
+                          pattern="[0-9]*" 
+                          title="Solo se permiten números (sin letras ni símbolos)"
                           {...register('celular', { 
                             required: 'El número de celular es requerido',
                             minLength: {

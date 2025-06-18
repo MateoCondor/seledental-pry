@@ -91,6 +91,8 @@ const RegistroClientePage = () => {
                 autoComplete="given-name"
                 required
                 className="input pl-10"
+                pattern="[^0-9]*" 
+                title='El nombre no debe contener números'
                 placeholder="Nombre"
                 {...register('nombre', { 
                   required: 'El nombre es requerido',
@@ -117,6 +119,8 @@ const RegistroClientePage = () => {
                 autoComplete="family-name"
                 required
                 className="input pl-10"
+                pattern="[^0-9]*" 
+                title='El apellido no debe contener números'
                 placeholder="Apellido"
                 {...register('apellido', { 
                   required: 'El apellido es requerido',

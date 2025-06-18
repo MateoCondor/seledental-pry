@@ -84,7 +84,7 @@ const registro = async (req, res) => {
     }
     
     // Validar el rol (opcional, depende de los requisitos)
-    const rolesValidos = ['administrador', 'recepcionista', 'cliente'];
+    const rolesValidos = ['administrador', 'recepcionista', 'cliente', 'odontologo'];
     if (rol && !rolesValidos.includes(rol)) {
       return errorResponse(res, 400, 'Rol no válido', { 
         rolesValidos 
