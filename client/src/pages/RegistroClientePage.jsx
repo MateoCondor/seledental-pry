@@ -92,7 +92,7 @@ const RegistroClientePage = () => {
                 required
                 className="input pl-10"
                 pattern="[^0-9]*" 
-                title='El nombre no debe contener números'
+                title='El nombre no debe contener números.'
                 placeholder="Nombre"
                 {...register('nombre', { 
                   required: 'El nombre es requerido',

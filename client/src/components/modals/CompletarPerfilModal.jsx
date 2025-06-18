@@ -185,7 +185,7 @@ const CompletarPerfilModal = ({ isOpen, onClose, onSave, user, isLoading = false
                           className="input pl-10"
                           placeholder="Ej: 0987654321"
                           pattern="[0-9]*" 
-                          title="Solo se permiten números (sin letras ni símbolos)"
+                          title="Solo se permiten números (sin letras ni símbolos.)"
                           {...register('celular', { 
                             required: 'El número de celular es requerido',
                             minLength: {
