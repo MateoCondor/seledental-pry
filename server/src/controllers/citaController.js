@@ -6,6 +6,7 @@
 const { Usuario, Cita } = require('../models');
 const { successResponse, errorResponse } = require('../utils/responses');
 const { Op } = require('sequelize');
+const { notificarCambioHorarios } = require('../config/websocket');
 
 /**
  * Obtiene las categorías disponibles según el tipo de consulta
@@ -49,16 +50,17 @@ const obtenerCategorias = async (req, res) => {
 const obtenerHorariosDisponibles = async (req, res) => {
   try {
     const { fecha } = req.query;
-    
+
     if (!fecha) {
       return errorResponse(res, 400, 'La fecha es requerida');
     }
 
-    // Validar que la fecha no sea en el pasado
-    const fechaSeleccionada = new Date(fecha);
+    // SOLUCIÓN: Usar el mismo método de construcción de fecha
+    const [año, mes, dia] = fecha.split('-').map(Number);
+    const fechaSeleccionada = new Date(año, mes - 1, dia);
     const hoy = new Date();
     hoy.setHours(0, 0, 0, 0);
-    
+
     if (fechaSeleccionada < hoy) {
       return errorResponse(res, 400, 'No se pueden agendar citas en fechas pasadas');
     }
@@ -70,11 +72,11 @@ const obtenerHorariosDisponibles = async (req, res) => {
       '16:00', '16:30', '17:00', '17:30'
     ];
 
-    // Obtener citas ya agendadas para esa fecha
-    const fechaInicio = new Date(fecha);
-    fechaInicio.setHours(0, 0, 0, 0);
-    const fechaFin = new Date(fecha);
-    fechaFin.setHours(23, 59, 59, 999);
+    // Obtener citas ya agendadas para esa fecha - usar construcción consistente
+    const fechaInicio = new Date(año, mes - 1, dia, 0, 0, 0, 0);
+    const fechaFin = new Date(año, mes - 1, dia, 23, 59, 59, 999);
+
+    console.log('Buscando citas entre:', fechaInicio, 'y', fechaFin);
 
     const citasOcupadas = await Cita.findAll({
       where: {
@@ -88,27 +90,58 @@ const obtenerHorariosDisponibles = async (req, res) => {
       attributes: ['fechaHora', 'duracion']
     });
 
-    // Filtrar horarios disponibles
+    console.log('Citas ocupadas encontradas:', citasOcupadas.length);
+
+    // Filtrar horarios disponibles considerando la duración de 1 hora
     const horariosDisponibles = horariosBase.filter(horario => {
       const [hora, minuto] = horario.split(':');
-      const fechaHorario = new Date(fecha);
-      fechaHorario.setHours(parseInt(hora), parseInt(minuto), 0, 0);
+      const horaInicial = parseInt(hora);
+      const minutoInicial = parseInt(minuto);
 
       // Verificar si hay conflicto con citas existentes
       const tieneConflicto = citasOcupadas.some(cita => {
-        const inicioExistente = new Date(cita.fechaHora);
-        const finExistente = new Date(inicioExistente.getTime() + (cita.duracion * 60000));
-        const finNuevo = new Date(fechaHorario.getTime() + (60 * 60000)); // Asumiendo 60 min por defecto
+        const horaCita = cita.fechaHora.getHours();
+        const minutoCita = cita.fechaHora.getMinutes();
 
-        return (fechaHorario < finExistente && finNuevo > inicioExistente);
+        // Calcular el final de la cita existente (1 hora después)
+        const finCitaHora = minutoCita === 30 ? horaCita + 1 : horaCita;
+        const finCitaMinuto = minutoCita === 30 ? 0 : 30;
+
+        // Verificar si el horario propuesto se solapa con la cita existente
+        // Una cita ocupa desde su hora inicial hasta 1 hora después
+
+        // Caso 1: El horario propuesto es exactamente cuando inicia una cita existente
+        if (horaInicial === horaCita && minutoInicial === minutoCita) {
+          return true;
+        }
+
+        // Caso 2: El horario propuesto está dentro del rango de una cita existente
+        // Si la cita existente es a las 8:00, ocupa de 8:00 a 9:00 (bloquea 8:00 y 8:30)
+        if (horaInicial === horaCita && minutoInicial > minutoCita) {
+          return true;
+        }
+
+        // Caso 3: El horario propuesto es 30 minutos después de una cita que inicia en :00
+        if (horaInicial === horaCita && minutoCita === 0 && minutoInicial === 30) {
+          return true;
+        }
+
+        // Caso 4: Si la cita existente inicia en :30, también bloquea la siguiente hora
+        if (minutoCita === 30) {
+          if (horaInicial === horaCita + 1 && minutoInicial === 0) {
+            return true;
+          }
+        }
+
+        return false;
       });
 
       return !tieneConflicto;
     });
 
-    return successResponse(res, 200, 'Horarios disponibles obtenidos correctamente', { 
+    return successResponse(res, 200, 'Horarios disponibles obtenidos correctamente', {
       fecha,
-      horariosDisponibles 
+      horariosDisponibles
     });
   } catch (error) {
     console.error('Error al obtener horarios disponibles:', error);
@@ -141,34 +174,78 @@ const crearCita = async (req, res) => {
       return errorResponse(res, 400, 'Debe completar su perfil antes de agendar una cita');
     }
 
-    // Validar fecha y hora
-    const fechaCita = new Date(fechaHora);
+    // SOLUCIÓN: Crear la fecha correctamente con timezone local
+    // Parsear la fecha del formato "YYYY-MM-DDTHH:mm:ss"
+    const [fechaParte, horaParte] = fechaHora.split('T');
+    const [año, mes, dia] = fechaParte.split('-').map(Number);
+    const [hora, minuto] = horaParte.split(':').map(Number);
+
+    // Crear fecha en timezone local (no UTC)
+    const fechaCita = new Date(año, mes - 1, dia, hora, minuto, 0, 0);
+
+    console.log('Fecha recibida:', fechaHora);
+    console.log('Fecha procesada:', fechaCita);
+    console.log('Fecha ISO:', fechaCita.toISOString());
+
     const ahora = new Date();
-    
+
     if (fechaCita <= ahora) {
       return errorResponse(res, 400, 'La fecha y hora de la cita debe ser futura');
     }
 
-    // Verificar disponibilidad del horario
-    const citaExistente = await Cita.findOne({
+    // Verificar disponibilidad del horario considerando duración de 1 hora
+    const fechaInicio = new Date(año, mes - 1, dia, 0, 0, 0, 0);
+    const fechaFin = new Date(año, mes - 1, dia, 23, 59, 59, 999);
+
+    const citasExistentes = await Cita.findAll({
       where: {
-        fechaHora: fechaCita,
+        fechaHora: {
+          [Op.between]: [fechaInicio, fechaFin]
+        },
         estado: {
           [Op.notIn]: ['cancelada', 'no_asistio']
         }
       }
     });
 
-    if (citaExistente) {
+    // Verificar conflicto de horario considerando que cada cita dura 1 hora
+    const tieneConflicto = citasExistentes.some(citaExistente => {
+      const horaExistente = citaExistente.fechaHora.getHours();
+      const minutoExistente = citaExistente.fechaHora.getMinutes();
+
+      // La nueva cita ocupará desde su hora inicial hasta 1 hora después
+      const finNuevaCitaHora = minuto === 30 ? hora + 1 : hora;
+      const finNuevaCitaMinuto = minuto === 30 ? 0 : 30;
+
+      // La cita existente ocupa desde su hora inicial hasta 1 hora después
+      const finCitaExistenteHora = minutoExistente === 30 ? horaExistente + 1 : horaExistente;
+      const finCitaExistenteMinuto = minutoExistente === 30 ? 0 : 30;
+
+      // Verificar solapamiento entre los rangos de tiempo
+      // Rango nueva cita: [hora:minuto - finNuevaCitaHora:finNuevaCitaMinuto]
+      // Rango cita existente: [horaExistente:minutoExistente - finCitaExistenteHora:finCitaExistenteMinuto]
+
+      const inicioNueva = hora * 60 + minuto; // en minutos desde medianoche
+      const finNueva = finNuevaCitaHora * 60 + finNuevaCitaMinuto;
+
+      const inicioExistente = horaExistente * 60 + minutoExistente;
+      const finExistente = finCitaExistenteHora * 60 + finCitaExistenteMinuto;
+
+      // Hay conflicto si los rangos se solapan
+      return (inicioNueva < finExistente && finNueva > inicioExistente);
+    });
+
+    if (tieneConflicto) {
       return errorResponse(res, 400, 'El horario seleccionado no está disponible');
     }
 
-    // Crear la cita
+    // Crear la cita con duración por defecto de 60 minutos
     const nuevaCita = await Cita.create({
       clienteId,
       tipoConsulta,
       categoria,
       fechaHora: fechaCita,
+      duracion: 60, // 60 minutos por defecto
       detalles: detalles || null,
       estado: 'pendiente'
     });
@@ -184,12 +261,15 @@ const crearCita = async (req, res) => {
       ]
     });
 
-    return successResponse(res, 201, 'Cita agendada correctamente', { 
-      cita: citaCreada 
+    // Notificar cambios en horarios vía WebSocket - usar la fecha original
+    notificarCambioHorarios(fechaParte);
+
+    return successResponse(res, 201, 'Cita agendada correctamente', {
+      cita: citaCreada
     });
   } catch (error) {
     console.error('Error al crear cita:', error);
-    
+
     if (error.name === 'SequelizeValidationError') {
       const errores = error.errors.map(err => ({
         campo: err.path,
@@ -197,7 +277,7 @@ const crearCita = async (req, res) => {
       }));
       return errorResponse(res, 400, 'Error de validación', errores);
     }
-    
+
     return errorResponse(res, 500, 'Error al agendar la cita');
   }
 };
@@ -213,7 +293,7 @@ const obtenerCitasCliente = async (req, res) => {
     const { estado, limite = 50, pagina = 1 } = req.query;
 
     let whereCondition = { clienteId };
-    
+
     if (estado) {
       whereCondition.estado = estado;
     }
@@ -283,13 +363,43 @@ const cancelarCita = async (req, res) => {
       return errorResponse(res, 400, 'Las citas deben cancelarse con al menos 24 horas de anticipación');
     }
 
-    // Actualizar la cita
-    await cita.update({
-      estado: 'cancelada',
-      motivoCancelacion: motivoCancelacion || 'Sin motivo especificado'
+    console.log('Cancelando cita:', {
+      id: cita.id,
+      fechaHora: cita.fechaHora,
+      estadoAnterior: cita.estado
     });
 
-    return successResponse(res, 200, 'Cita cancelada correctamente', { cita });
+    // Actualizar la cita - ESTO LIBERA AUTOMÁTICAMENTE LOS HORARIOS
+    await cita.update({
+      estado: 'cancelada',
+      motivoCancelacion: motivoCancelacion || 'Sin motivo especificado',
+      fechaCancelacion: new Date()
+    });
+
+    console.log('Cita cancelada exitosamente, horarios liberados');
+
+    // Obtener solo la fecha para notificación WebSocket
+    const fechaSolo = new Date(cita.fechaHora);
+    const fechaString = `${fechaSolo.getFullYear()}-${String(fechaSolo.getMonth() + 1).padStart(2, '0')}-${String(fechaSolo.getDate()).padStart(2, '0')}`;
+    
+    // Notificar cambios en horarios vía WebSocket - ESTO ACTUALIZA LOS HORARIOS DISPONIBLES EN TIEMPO REAL
+    console.log('Notificando cambio de horarios para fecha:', fechaString);
+    notificarCambioHorarios(fechaString);
+
+    // Obtener la cita actualizada con todos los datos
+    const citaCancelada = await Cita.findByPk(id, {
+      include: [
+        {
+          model: Usuario,
+          as: 'cliente',
+          attributes: ['id', 'nombre', 'apellido', 'email', 'celular']
+        }
+      ]
+    });
+
+    return successResponse(res, 200, 'Cita cancelada correctamente. Los horarios han sido liberados y están disponibles nuevamente.', { 
+      cita: citaCancelada 
+    });
   } catch (error) {
     console.error('Error al cancelar cita:', error);
     return errorResponse(res, 500, 'Error al cancelar la cita');
