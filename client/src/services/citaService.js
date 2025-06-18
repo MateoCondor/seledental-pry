@@ -40,7 +40,7 @@ const citaService = {
    */
   crearCita: async (citaData) => {
     try {
-      
+
       console.log('Enviando datos de cita:', citaData);
       const response = await api.post('/citas', citaData);
       console.log('Respuesta del servidor:', response.data);
@@ -90,6 +90,26 @@ const citaService = {
       return response.data;
     } catch (error) {
       console.error('Error al cancelar cita:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Reagenda una cita
+   * @param {number} citaId - ID de la cita
+   * @param {string} fechaHora - Nueva fecha y hora en formato ISO
+   * @param {string} motivoReagendamiento - Motivo del reagendamiento
+   * @returns {Promise} - Cita reagendada
+   */
+  reagendarCita: async (citaId, fechaHora, motivoReagendamiento = '') => {
+    try {
+      const response = await api.put(`/citas/${citaId}/reagendar`, {
+        fechaHora,
+        motivoReagendamiento
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error al reagendar cita:', error);
       throw error;
     }
   }

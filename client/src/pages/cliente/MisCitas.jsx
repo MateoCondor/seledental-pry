@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
-import { FiCalendar, FiClock, FiUser, FiFileText, FiX, FiPlus, FiRefreshCw } from 'react-icons/fi';
+import { FiCalendar, FiClock, FiUser, FiFileText, FiX, FiPlus, FiRefreshCw, FiEdit3, FiEye } from 'react-icons/fi';
 import { Link } from 'react-router-dom';
 import ClienteLayout from '../../components/layouts/ClienteLayout';
 import citaService from '../../services/citaService';
 import CancelarCitaModal from '../../components/modals/CancelarCitaModal';
+import ReagendarCitaModal from '../../components/modals/ReagendarCitaModal';
 
 /**
  * Página para ver mis citas (clientes)
@@ -14,8 +15,14 @@ const MisCitas = () => {
   const [citas, setCitas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filtroEstado, setFiltroEstado] = useState('todas');
+
+  // Estados para modal de cancelación
   const [citaACancelar, setCitaACancelar] = useState(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isModalCancelarOpen, setIsModalCancelarOpen] = useState(false);
+
+  // Estados para modal de reagendamiento
+  const [citaAReagendar, setCitaAReagendar] = useState(null);
+  const [isModalReagendarOpen, setIsModalReagendarOpen] = useState(false);
 
   /**
    * Cargar las citas del cliente
@@ -25,7 +32,7 @@ const MisCitas = () => {
     try {
       const params = filtroEstado !== 'todas' ? { estado: filtroEstado } : {};
       const response = await citaService.getMisCitas(params);
-      
+
       if (response.success) {
         setCitas(response.datos.citas);
       }
@@ -47,7 +54,16 @@ const MisCitas = () => {
    */
   const handleCancelarCita = (cita) => {
     setCitaACancelar(cita);
-    setIsModalOpen(true);
+    setIsModalCancelarOpen(true);
+  };
+
+  /**
+   * Manejar reagendamiento de cita
+   * @param {Object} cita - Cita a reagendar
+   */
+  const handleReagendarCita = (cita) => {
+    setCitaAReagendar(cita);
+    setIsModalReagendarOpen(true);
   };
 
   /**
@@ -59,11 +75,29 @@ const MisCitas = () => {
       await citaService.cancelarCita(citaACancelar.id, motivo);
       toast.success('Cita cancelada exitosamente');
       loadCitas(); // Recargar citas
-      setIsModalOpen(false);
+      setIsModalCancelarOpen(false);
       setCitaACancelar(null);
     } catch (error) {
       console.error('Error al cancelar cita:', error);
       toast.error(error.response?.data?.mensaje || 'Error al cancelar la cita');
+    }
+  };
+
+  /**
+   * Confirmar reagendamiento de cita
+   * @param {string} fechaHora - Nueva fecha y hora
+   * @param {string} motivo - Motivo del reagendamiento
+   */
+  const confirmarReagendamiento = async (fechaHora, motivo) => {
+    try {
+      await citaService.reagendarCita(citaAReagendar.id, fechaHora, motivo);
+      toast.success('Cita reagendada exitosamente');
+      loadCitas(); // Recargar citas
+      setIsModalReagendarOpen(false);
+      setCitaAReagendar(null);
+    } catch (error) {
+      console.error('Error al reagendar cita:', error);
+      toast.error(error.response?.data?.mensaje || 'Error al reagendar la cita');
     }
   };
 
@@ -106,7 +140,7 @@ const MisCitas = () => {
    * @param {Object} cita - Cita a verificar
    * @returns {boolean} - Si se puede cancelar
    */
-  const puedeCancel = (cita) => {
+  const puedeCancelar = (cita) => {
     const estadosNoCancelables = ['completada', 'cancelada', 'no_asistio'];
     if (estadosNoCancelables.includes(cita.estado)) return false;
 
@@ -114,23 +148,39 @@ const MisCitas = () => {
     const fechaCita = new Date(cita.fechaHora);
     const ahora = new Date();
     const horasRestantes = (fechaCita - ahora) / (1000 * 60 * 60);
-    
+
+    return horasRestantes > 24;
+  };
+
+  /**
+   * Verificar si una cita se puede reagendar
+   * @param {Object} cita - Cita a verificar
+   * @returns {boolean} - Si se puede reagendar
+   */
+  const puedeReagendar = (cita) => {
+    const estadosNoReagendables = ['completada', 'cancelada', 'no_asistio'];
+    if (estadosNoReagendables.includes(cita.estado)) return false;
+
+    // Verificar que falten más de 24 horas
+    const fechaCita = new Date(cita.fechaHora);
+    const ahora = new Date();
+    const horasRestantes = (fechaCita - ahora) / (1000 * 60 * 60);
+
     return horasRestantes > 24;
   };
 
   return (
     <ClienteLayout>
       <div className="space-y-8">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+        {/* Header con acciones */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Mis Citas</h1>
-            <p className="text-gray-600 mt-2">
-              Gestiona todas tus citas médicas
+            <p className="text-2xl font-semibold text-gray-900">
+              Gestiona tus citas médicas
             </p>
           </div>
-          
-          <div className="mt-4 sm:mt-0 flex space-x-3">
+
+          <div className="flex gap-3">
             <button
               onClick={loadCitas}
               className="btn btn-secondary flex items-center"
@@ -138,7 +188,7 @@ const MisCitas = () => {
               <FiRefreshCw className="mr-2 h-4 w-4" />
               Actualizar
             </button>
-            
+
             <Link
               to="/cliente/agendar-cita"
               className="btn btn-primary flex items-center"
@@ -149,25 +199,37 @@ const MisCitas = () => {
           </div>
         </div>
 
-        {/* Filtros */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-          <div className="flex flex-wrap gap-2">
-            <span className="text-sm font-medium text-gray-700 self-center mr-3">Filtrar por estado:</span>
+        {/* Tarjetas de filtros */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+          {[
+            { key: 'todas', label: 'Todas', icon: FiEye, color: 'bg-gray-100 text-gray-800' },
+            { key: 'pendiente', label: 'Pendientes', icon: FiClock, color: 'bg-yellow-100 text-yellow-800' },
+            { key: 'confirmada', label: 'Confirmadas', icon: FiCalendar, color: 'bg-blue-100 text-blue-800' },
+            { key: 'completada', label: 'Completadas', icon: FiUser, color: 'bg-green-100 text-green-800' },
+            { key: 'cancelada', label: 'Canceladas', icon: FiX, color: 'bg-red-100 text-red-800' }
+          ].map((filtro) => {
+            const Icon = filtro.icon;
+            const isActive = filtroEstado === filtro.key;
             
-            {['todas', 'pendiente', 'confirmada', 'completada', 'cancelada'].map((estado) => (
+            return (
               <button
-                key={estado}
-                onClick={() => setFiltroEstado(estado)}
-                className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
-                  filtroEstado === estado
-                    ? 'bg-primary text-white'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                key={filtro.key}
+                onClick={() => setFiltroEstado(filtro.key)}
+                className={`p-3 rounded-lg border-2 transition-all duration-200 ${
+                  isActive
+                    ? 'border-primary bg-primary text-white shadow-md'
+                    : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm'
                 }`}
               >
-                {estado === 'todas' ? 'Todas' : getEstadoTexto(estado)}
+                <div className="flex flex-col items-center space-y-1">
+                  <Icon className={`h-5 w-5 ${isActive ? 'text-white' : 'text-gray-500'}`} />
+                  <span className={`text-xs font-medium ${isActive ? 'text-white' : 'text-gray-700'}`}>
+                    {filtro.label}
+                  </span>
+                </div>
               </button>
-            ))}
-          </div>
+            );
+          })}
         </div>
 
         {/* Lista de citas */}
@@ -184,11 +246,13 @@ const MisCitas = () => {
             </div>
           ) : citas.length === 0 ? (
             <div className="text-center py-12">
-              <FiCalendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <FiCalendar className="h-10 w-10 text-gray-400" />
+              </div>
               <h3 className="text-lg font-medium text-gray-900 mb-2">No tienes citas</h3>
-              <p className="text-gray-500 mb-4">
-                {filtroEstado === 'todas' 
-                  ? 'Aún no has agendado ninguna cita' 
+              <p className="text-gray-500 mb-6">
+                {filtroEstado === 'todas'
+                  ? 'Aún no has agendado ninguna cita'
                   : `No tienes citas ${getEstadoTexto(filtroEstado).toLowerCase()}`
                 }
               </p>
@@ -197,89 +261,135 @@ const MisCitas = () => {
                 className="btn btn-primary inline-flex items-center"
               >
                 <FiPlus className="mr-2 h-4 w-4" />
-                Agendar Cita
+                Agendar Primera Cita
               </Link>
             </div>
           ) : (
             <div className="divide-y divide-gray-200">
               {citas.map((cita) => (
                 <div key={cita.id} className="p-6 hover:bg-gray-50 transition-colors">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center mb-2">
+                  <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+                    <div className="flex-1 space-y-4">
+                      {/* Header de la cita */}
+                      <div className="flex items-center justify-between flex-wrap gap-2">
                         <span className={`inline-flex px-3 py-1 rounded-full text-xs font-medium ${getEstadoColor(cita.estado)}`}>
                           {getEstadoTexto(cita.estado)}
                         </span>
-                        
+
                         {cita.odontologo && (
-                          <span className="ml-3 text-sm text-gray-600">
-                            <FiUser className="inline h-4 w-4 mr-1" />
+                          <div className="flex items-center text-sm text-gray-600">
+                            <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center mr-2">
+                              <FiUser className="h-3 w-3 text-green-600" />
+                            </div>
                             Dr. {cita.odontologo.nombre} {cita.odontologo.apellido}
-                          </span>
+                          </div>
                         )}
                       </div>
 
+                      {/* Información principal */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <p className="text-sm font-medium text-gray-900 capitalize">
-                            {cita.tipoConsulta.replace('_', ' ')} - {cita.categoria.replace(/_/g, ' ')}
-                          </p>
-                          
-                          <div className="mt-2 flex items-center text-sm text-gray-600">
-                            <FiCalendar className="mr-2 h-4 w-4" />
-                            {new Date(cita.fechaHora).toLocaleDateString('es-ES', {
-                              weekday: 'long',
-                              year: 'numeric',
-                              month: 'long',
-                              day: 'numeric'
-                            })}
+                        <div className="space-y-3">
+                          <div>
+                            <h4 className="text-sm font-medium text-gray-900 mb-1">Tipo de consulta</h4>
+                            <p className="text-sm text-gray-600 capitalize">
+                              {cita.tipoConsulta.replace('_', ' ')} - {cita.categoria.replace(/_/g, ' ')}
+                            </p>
                           </div>
-                          
-                          <div className="mt-1 flex items-center text-sm text-gray-600">
-                            <FiClock className="mr-2 h-4 w-4" />
-                            {new Date(cita.fechaHora).toLocaleTimeString('es-ES', {
-                              hour: '2-digit',
-                              minute: '2-digit'
-                            })}
+
+                          <div>
+                            <h4 className="text-sm font-medium text-gray-900 mb-1 flex items-center">
+                              <FiCalendar className="mr-1 h-4 w-4" />
+                              Fecha y Hora
+                            </h4>
+                            <p className="text-sm text-gray-600">
+                              {new Date(cita.fechaHora).toLocaleDateString('es-ES', {
+                                weekday: 'long',
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric'
+                              })}
+                            </p>
+                            <p className="text-sm text-gray-600 flex items-center mt-1">
+                              <FiClock className="mr-1 h-4 w-4" />
+                              {new Date(cita.fechaHora).toLocaleTimeString('es-ES', {
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              })}
+                            </p>
                           </div>
                         </div>
 
                         {cita.detalles && (
                           <div>
-                            <p className="text-sm font-medium text-gray-900 mb-1">
-                              <FiFileText className="inline h-4 w-4 mr-1" />
-                              Detalles:
-                            </p>
-                            <p className="text-sm text-gray-600 bg-gray-50 p-2 rounded">
-                              {cita.detalles}
-                            </p>
+                            <h4 className="text-sm font-medium text-gray-900 mb-1 flex items-center">
+                              <FiFileText className="mr-1 h-4 w-4" />
+                              Detalles
+                            </h4>
+                            <div className="bg-gray-50 p-3 rounded-lg">
+                              <p className="text-sm text-gray-600">{cita.detalles}</p>
+                            </div>
                           </div>
                         )}
                       </div>
 
-                      {cita.motivoCancelacion && (
-                        <div className="mt-3 p-3 bg-red-50 border-l-4 border-red-400">
-                          <p className="text-sm text-red-700">
-                            <strong>Motivo de cancelación:</strong> {cita.motivoCancelacion}
-                          </p>
-                        </div>
-                      )}
+                      {/* Información adicional */}
+                      {(cita.motivoCancelacion || cita.fechaAnterior || cita.notasOdontologo) && (
+                        <div className="space-y-3 pt-3 border-t border-gray-200">
+                          {cita.motivoCancelacion && (
+                            <div className="bg-red-50 border-l-4 border-red-400 p-3 rounded-r-lg">
+                              <p className="text-sm text-red-700">
+                                <strong>Motivo de cancelación:</strong> {cita.motivoCancelacion}
+                              </p>
+                            </div>
+                          )}
 
-                      {cita.notasOdontologo && (
-                        <div className="mt-3 p-3 bg-blue-50 border-l-4 border-blue-400">
-                          <p className="text-sm text-blue-700">
-                            <strong>Notas del odontólogo:</strong> {cita.notasOdontologo}
-                          </p>
+                          {cita.fechaAnterior && (
+                            <div className="bg-blue-50 border-l-4 border-blue-400 p-3 rounded-r-lg">
+                              <p className="text-sm text-blue-700">
+                                <strong>Reagendada desde:</strong> {new Date(cita.fechaAnterior).toLocaleDateString('es-ES', {
+                                  weekday: 'long',
+                                  year: 'numeric',
+                                  month: 'long',
+                                  day: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit'
+                                })}
+                              </p>
+                              {cita.motivoReagendamiento && (
+                                <p className="text-sm text-blue-700 mt-1">
+                                  <strong>Motivo:</strong> {cita.motivoReagendamiento}
+                                </p>
+                              )}
+                            </div>
+                          )}
+
+                          {cita.notasOdontologo && (
+                            <div className="bg-green-50 border-l-4 border-green-400 p-3 rounded-r-lg">
+                              <p className="text-sm text-green-700">
+                                <strong>Notas del odontólogo:</strong> {cita.notasOdontologo}
+                              </p>
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
 
                     {/* Acciones */}
-                    <div className="ml-4 flex flex-col space-y-2">
-                      {puedeCancel(cita) && (
+                    <div className="flex lg:flex-col gap-2">
+                      {puedeReagendar(cita) && (
+                        <button
+                          onClick={() => handleReagendarCita(cita)}
+                          className="inline-flex items-center px-3 py-2 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
+                        >
+                          <FiEdit3 className="mr-1 h-4 w-4" />
+                          Reagendar
+                        </button>
+                      )}
+                      
+                      {puedeCancelar(cita) && (
                         <button
                           onClick={() => handleCancelarCita(cita)}
-                          className="inline-flex items-center px-3 py-1 text-sm text-red-600 hover:text-red-900 hover:bg-red-50 rounded-md transition-colors"
+                          className="inline-flex items-center px-3 py-2 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
                         >
                           <FiX className="mr-1 h-4 w-4" />
                           Cancelar
@@ -296,10 +406,18 @@ const MisCitas = () => {
 
       {/* Modal de cancelación */}
       <CancelarCitaModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        isOpen={isModalCancelarOpen}
+        onClose={() => setIsModalCancelarOpen(false)}
         onConfirm={confirmarCancelacion}
         cita={citaACancelar}
+      />
+
+      {/* Modal de reagendamiento */}
+      <ReagendarCitaModal
+        isOpen={isModalReagendarOpen}
+        onClose={() => setIsModalReagendarOpen(false)}
+        onConfirm={confirmarReagendamiento}
+        cita={citaAReagendar}
       />
     </ClienteLayout>
   );

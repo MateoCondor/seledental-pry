@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import useAuth from '../../hooks/useAuth';
 import ClienteLayout from '../../components/layouts/ClienteLayout';
 import usuarioService from '../../services/usuarioService';
@@ -70,9 +71,11 @@ const ClienteDashboard = () => {
               <h2 className="text-xl font-semibold text-gray-800 mb-4">Próximas Citas</h2>
               <div className="text-center py-8 text-gray-500">
                 <p>No tienes citas programadas</p>
+              <Link to="/cliente/agendar-cita" className="text-primary underline">
                 <button className="btn btn-primary mt-4">
                   Solicitar Cita
                 </button>
+              </Link>
               </div>
             </div>
             
