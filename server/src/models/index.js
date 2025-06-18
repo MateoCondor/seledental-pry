@@ -4,16 +4,35 @@
  */
 
 const Usuario = require('./Usuario');
-
-// Aquí se pueden agregar más modelos en el futuro
-// const OtroModelo = require('./OtroModelo');
+const Cita = require('./Cita');
 
 // Definir relaciones entre modelos
-// Ejemplo: 
-// Usuario.hasMany(OtroModelo);
-// OtroModelo.belongsTo(Usuario);
+// Un usuario (cliente) puede tener muchas citas
+Usuario.hasMany(Cita, {
+  foreignKey: 'clienteId',
+  as: 'citasComoCliente'
+});
+
+// Un usuario (odontólogo) puede tener muchas citas asignadas
+Usuario.hasMany(Cita, {
+  foreignKey: 'odontologoId',
+  as: 'citasComoOdontologo'
+});
+
+// Una cita pertenece a un cliente
+Cita.belongsTo(Usuario, {
+  foreignKey: 'clienteId',
+  as: 'cliente'
+});
+
+// Una cita pertenece a un odontólogo
+Cita.belongsTo(Usuario, {
+  foreignKey: 'odontologoId',
+  as: 'odontologo'
+});
 
 // Exportar todos los modelos
 module.exports = {
-  Usuario
+  Usuario,
+  Cita
 };

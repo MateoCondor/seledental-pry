@@ -5,7 +5,9 @@
 
 const express = require('express');
 const cors = require('cors');
+const http = require('http');
 const { sequelize, testDbConnection } = require('./config/database');
+const { initializeWebSocket } = require('./config/websocket');
 const routes = require('./routes');
 const crearAdminInicial = require('./utils/adminInicial');
 
@@ -14,6 +16,12 @@ require('dotenv').config();
 
 // Crear la aplicación Express
 const app = express();
+
+// Crear servidor HTTP
+const server = http.createServer(app);
+
+// Inicializar WebSocket
+initializeWebSocket(server);
 
 // Middleware para parsear JSON
 app.use(express.json());
@@ -35,7 +43,8 @@ const startServer = async () => {
   try {
     // Probar la conexión a la base de datos
     await testDbConnection();
-      // Sincronizar los modelos con la base de datos
+    
+    // Sincronizar los modelos con la base de datos
     // NOTA: En producción, se recomienda no usar force: true
     await sequelize.sync({ alter: true });
     console.log('✅ Modelos sincronizados con la base de datos');
@@ -44,9 +53,10 @@ const startServer = async () => {
     await crearAdminInicial();
     
     // Iniciar el servidor
-    app.listen(PORT, () => {
+    server.listen(PORT, () => {
       console.log(`🚀 Servidor ejecutándose en el puerto ${PORT}`);
       console.log(`📚 API disponible en http://localhost:${PORT}/api`);
+      console.log(`🔌 WebSocket disponible en http://localhost:${PORT}`);
     });
   } catch (error) {
     console.error('❌ Error al iniciar el servidor:', error);
