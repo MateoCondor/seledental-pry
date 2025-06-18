@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { FiMenu, FiX, FiUser, FiLogOut, FiHome, FiCalendar, FiFileText } from 'react-icons/fi';
+import { FiMenu, FiX, FiUser, FiLogOut, FiHome, FiCalendar, FiPlus } from 'react-icons/fi';
 import useAuth from '../../hooks/useAuth';
 import PropTypes from 'prop-types';
 
@@ -34,9 +34,9 @@ const ClienteLayout = ({ children, title }) => {
       icon: <FiCalendar className="h-5 w-5" />
     },
     {
-      name: 'Historial',
-      path: '/cliente/historial',
-      icon: <FiFileText className="h-5 w-5" />
+      name: 'Agendar Cita',
+      path: '/cliente/agendar-cita',
+      icon: <FiPlus className="h-5 w-5" />
     },
     {
       name: 'Mi Perfil',

@@ -14,14 +14,14 @@ const OdontologoDashboard = () => {
 
   // Datos simulados para estadísticas (se reemplazarán con datos reales cuando se implemente el módulo de citas)
   const estadisticas = {
-    citasHoy: 5,
-    citasSemana: 23,
-    citasMes: 87,
-    pacientesAtendidos: 156
+    citasHoy: 0,
+    citasSemana: 0,
+    citasMes: 0,
+    pacientesAtendidos: 0
   };
 
   return (
-    <OdontologoLayout title="Panel de Control">
+    <OdontologoLayout>
       <div className="space-y-8">
         {/* Mensaje de bienvenida */}
         <div className="bg-gradient-to-r from-primary to-secondary rounded-lg p-6 mb-8 text-white">

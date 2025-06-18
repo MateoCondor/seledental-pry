@@ -96,7 +96,7 @@ const OdontologoPerfil = () => {
 
   if (loading) {
     return (
-      <OdontologoLayout title="Mi Perfil">
+      <OdontologoLayout>
         <div className="flex justify-center py-12">
           <div className="flex items-center space-x-3">
             <svg className="animate-spin h-8 w-8 text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -111,7 +111,7 @@ const OdontologoPerfil = () => {
   }
 
   return (
-    <OdontologoLayout title="Mi Perfil">
+    <OdontologoLayout>
       <div className="max-w-2xl mx-auto">
         <div className="bg-white rounded-xl shadow-sm border border-gray-200">
           <div className="px-6 py-4 border-b border-gray-200">

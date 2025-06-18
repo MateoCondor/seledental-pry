@@ -8,10 +8,9 @@ import PropTypes from 'prop-types';
  * Layout para odontólogos
  * @param {Object} props - Propiedades del componente
  * @param {React.ReactNode} props.children - Contenido del layout
- * @param {string} props.title - Título de la página
  * @returns {JSX.Element} Layout de odontólogo
  */
-const OdontologoLayout = ({ children, title = "Panel de Odontólogo" }) => {
+const OdontologoLayout = ({ children }) => {
   const { user, logout } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -162,7 +161,7 @@ const OdontologoLayout = ({ children, title = "Panel de Odontólogo" }) => {
         <main className="flex-1 overflow-y-auto">
           <div className="py-6">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <h1 className="text-2xl font-semibold text-gray-900 mb-6">{title}</h1>
+              <h1 className="text-2xl font-semibold text-gray-900 mb-6"></h1>
               {children}
             </div>
           </div>
@@ -174,7 +173,6 @@ const OdontologoLayout = ({ children, title = "Panel de Odontólogo" }) => {
 
 OdontologoLayout.propTypes = {
   children: PropTypes.node.isRequired,
-  title: PropTypes.string,
 };
 
 export default OdontologoLayout;

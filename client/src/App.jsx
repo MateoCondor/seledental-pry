@@ -20,6 +20,8 @@ import RecepcionistaPerfil from './pages/recepcionista/RecepcionistaPerfil';
 // Páginas del cliente
 import ClienteDashboard from './pages/cliente/ClienteDashboard';
 import ClientePerfil from './pages/cliente/ClientePerfil';
+import AgendarCita from './pages/cliente/AgendarCita';
+import MisCitas from './pages/cliente/MisCitas';
 
 // Páginas del odontólogo
 import OdontologoDashboard from './pages/odontologo/OdontologoDashboard';
@@ -96,7 +98,8 @@ function App() {
                 <PerfilCompletoWrapper>
                   <Routes>
                     <Route path="dashboard" element={<ClienteDashboard />} />
-                    <Route path="citas" element={<ClienteDashboard />} />
+                    <Route path="citas" element={<MisCitas />} />
+                    <Route path="agendar-cita" element={<AgendarCita />} />
                     <Route path="historial" element={<ClienteDashboard />} />
                     <Route path="perfil" element={<ClientePerfil />} />
                     <Route path="*" element={<Navigate to="/cliente/dashboard" replace />} />
