@@ -112,7 +112,59 @@ const citaService = {
       console.error('Error al reagendar cita:', error);
       throw error;
     }
+  },
+  
+  /**
+   * Obtiene las citas pendientes de asignación de odontólogo
+   * @param {Object} params - Parámetros de consulta (limite, pagina, fecha)
+   * @returns {Promise<Object>} Response con las citas pendientes
+   */
+  getCitasPendientes: async (params = {}) => {
+    try {
+      const queryParams = new URLSearchParams(params).toString();
+      const response = await api.get(`/citas/pendientes${queryParams ? `?${queryParams}` : ''}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error al obtener citas pendientes:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Obtiene la lista de odontólogos disponibles
+   * @returns {Promise<Object>} Response con los odontólogos
+   */
+  getOdontologos: async () => {
+    try {
+      const response = await api.get('/citas/odontologos');
+      return response.data;
+    } catch (error) {
+      console.error('Error al obtener odontólogos:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Asigna un odontólogo a una cita
+   * @param {number} citaId - ID de la cita
+   * @param {number} odontologoId - ID del odontólogo
+   * @param {string} observaciones - Observaciones adicionales
+   * @returns {Promise<Object>} Response con la cita asignada
+   */
+  asignarOdontologo: async (citaId, odontologoId, observaciones = '') => {
+    try {
+      const response = await api.put(`/citas/${citaId}/asignar-odontologo`, {
+        odontologoId,
+        observaciones
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error al asignar odontólogo:', error);
+      throw error;
+    }
   }
 };
+
+
 
 export default citaService;

@@ -90,6 +90,16 @@ const Cita = sequelize.define('Cita', {
     allowNull: true,
     comment: 'Fecha en que se realizó el reagendamiento'
   },
+  observaciones: {
+    type: DataTypes.TEXT,
+    allowNull: true,
+    comment: 'Observaciones de la recepcionista al asignar odontólogo'
+  },
+  fechaAsignacion: {
+    type: DataTypes.DATE,
+    allowNull: true,
+    comment: 'Fecha en que se asignó el odontólogo'
+  },
   notasOdontologo: {
     type: DataTypes.TEXT,
     allowNull: true,

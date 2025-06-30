@@ -547,11 +547,211 @@ const reagendarCita = async (req, res) => {
   }
 };
 
+/**
+ * Obtiene las citas pendientes de asignación de odontólogo
+ * @param {Object} req - Objeto de solicitud Express
+ * @param {Object} res - Objeto de respuesta Express
+ */
+const obtenerCitasPendientes = async (req, res) => {
+  try {
+    const { limite = 50, pagina = 1, fecha } = req.query;
+    const offset = (pagina - 1) * limite;
+
+    let whereCondition = { 
+      estado: 'pendiente',
+      odontologoId: null // Solo citas sin odontólogo asignado
+    };
+
+    // Filtrar por fecha si se proporciona
+    if (fecha) {
+      const [año, mes, dia] = fecha.split('-').map(Number);
+      const fechaInicio = new Date(año, mes - 1, dia, 0, 0, 0, 0);
+      const fechaFin = new Date(año, mes - 1, dia, 23, 59, 59, 999);
+      
+      whereCondition.fechaHora = {
+        [Op.between]: [fechaInicio, fechaFin]
+      };
+    }
+
+    const { count, rows: citas } = await Cita.findAndCountAll({
+      where: whereCondition,
+      include: [
+        {
+          model: Usuario,
+          as: 'cliente',
+          attributes: ['id', 'nombre', 'apellido', 'email', 'celular']
+        }
+      ],
+      order: [['fechaHora', 'ASC']],
+      limit: parseInt(limite),
+      offset: parseInt(offset)
+    });
+
+    return successResponse(res, 200, 'Citas pendientes obtenidas correctamente', {
+      citas,
+      totalCitas: count,
+      paginaActual: parseInt(pagina),
+      totalPaginas: Math.ceil(count / limite)
+    });
+  } catch (error) {
+    console.error('Error al obtener citas pendientes:', error);
+    return errorResponse(res, 500, 'Error al obtener las citas pendientes');
+  }
+};
+
+/**
+ * Obtiene la lista de odontólogos disponibles
+ * @param {Object} req - Objeto de solicitud Express
+ * @param {Object} res - Objeto de respuesta Express
+ */
+const obtenerOdontologos = async (req, res) => {
+  try {
+    const odontologos = await Usuario.findAll({
+      where: { 
+        rol: 'odontologo',
+        activo: true
+      },
+      attributes: ['id', 'nombre', 'apellido', 'email'],
+      order: [['nombre', 'ASC'], ['apellido', 'ASC']]
+    });
+
+    return successResponse(res, 200, 'Odontólogos obtenidos correctamente', {
+      odontologos
+    });
+  } catch (error) {
+    console.error('Error al obtener odontólogos:', error);
+    return errorResponse(res, 500, 'Error al obtener la lista de odontólogos');
+  }
+};
+
+/**
+ * Asigna un odontólogo a una cita
+ * @param {Object} req - Objeto de solicitud Express
+ * @param {Object} res - Objeto de respuesta Express
+ */
+const asignarOdontologo = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { odontologoId, observaciones } = req.body;
+
+    // Validaciones
+    if (!odontologoId) {
+      return errorResponse(res, 400, 'El ID del odontólogo es requerido');
+    }
+
+    // Buscar la cita
+    const cita = await Cita.findByPk(id);
+    if (!cita) {
+      return errorResponse(res, 404, 'Cita no encontrada');
+    }
+
+    // Verificar que la cita esté en estado pendiente
+    if (cita.estado !== 'pendiente') {
+      return errorResponse(res, 400, 'Solo se pueden asignar odontólogos a citas pendientes');
+    }
+
+    // Verificar que el odontólogo existe y está activo
+    const odontologo = await Usuario.findOne({
+      where: { 
+        id: odontologoId, 
+        rol: 'odontologo',
+        activo: true
+      }
+    });
+
+    if (!odontologo) {
+      return errorResponse(res, 404, 'Odontólogo no encontrado o inactivo');
+    }
+
+    // Verificar disponibilidad del odontólogo en esa fecha/hora
+    const fechaCita = new Date(cita.fechaHora);
+    const [año, mes, dia] = [fechaCita.getFullYear(), fechaCita.getMonth(), fechaCita.getDate()];
+    const fechaInicio = new Date(año, mes, dia, 0, 0, 0, 0);
+    const fechaFin = new Date(año, mes, dia, 23, 59, 59, 999);
+
+    const citasOdontologoMismaFecha = await Cita.findAll({
+      where: {
+        odontologoId: odontologoId,
+        fechaHora: {
+          [Op.between]: [fechaInicio, fechaFin]
+        },
+        estado: {
+          [Op.notIn]: ['cancelada', 'no_asistio']
+        },
+        id: {
+          [Op.ne]: id // Excluir la cita actual
+        }
+      }
+    });
+
+    // Verificar conflictos de horario
+    const horaCita = fechaCita.getHours();
+    const minutoCita = fechaCita.getMinutes();
+
+    const tieneConflicto = citasOdontologoMismaFecha.some(citaExistente => {
+      const horaExistente = citaExistente.fechaHora.getHours();
+      const minutoExistente = citaExistente.fechaHora.getMinutes();
+
+      const finNuevaCitaHora = minutoCita === 30 ? horaCita + 1 : horaCita;
+      const finNuevaCitaMinuto = minutoCita === 30 ? 0 : 30;
+
+      const finCitaExistenteHora = minutoExistente === 30 ? horaExistente + 1 : horaExistente;
+      const finCitaExistenteMinuto = minutoExistente === 30 ? 0 : 30;
+
+      const inicioNueva = horaCita * 60 + minutoCita;
+      const finNueva = finNuevaCitaHora * 60 + finNuevaCitaMinuto;
+
+      const inicioExistente = horaExistente * 60 + minutoExistente;
+      const finExistente = finCitaExistenteHora * 60 + finCitaExistenteMinuto;
+
+      return (inicioNueva < finExistente && finNueva > inicioExistente);
+    });
+
+    if (tieneConflicto) {
+      return errorResponse(res, 400, 'El odontólogo ya tiene una cita asignada en ese horario');
+    }
+
+    // Asignar el odontólogo
+    await cita.update({
+      odontologoId: odontologoId,
+      estado: 'confirmada', // Cambiar estado a confirmada
+      observaciones: observaciones || null,
+      fechaAsignacion: new Date()
+    });
+
+    // Obtener la cita actualizada con todos los datos
+    const citaActualizada = await Cita.findByPk(id, {
+      include: [
+        {
+          model: Usuario,
+          as: 'cliente',
+          attributes: ['id', 'nombre', 'apellido', 'email', 'celular']
+        },
+        {
+          model: Usuario,
+          as: 'odontologo',
+          attributes: ['id', 'nombre', 'apellido', 'email']
+        }
+      ]
+    });
+
+    return successResponse(res, 200, 'Odontólogo asignado correctamente', {
+      cita: citaActualizada
+    });
+  } catch (error) {
+    console.error('Error al asignar odontólogo:', error);
+    return errorResponse(res, 500, 'Error al asignar el odontólogo');
+  }
+};
+
 module.exports = {
   obtenerCategorias,
   obtenerHorariosDisponibles,
   crearCita,
   obtenerCitasCliente,
   cancelarCita,
-  reagendarCita
+  reagendarCita,
+  obtenerCitasPendientes,
+  obtenerOdontologos,
+  asignarOdontologo
 };

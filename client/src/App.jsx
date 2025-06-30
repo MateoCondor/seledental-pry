@@ -16,6 +16,7 @@ import AdminPerfil from './pages/admin/AdminPerfil';
 // Páginas del recepcionista
 import RecepcionistaDashboard from './pages/recepcionista/RecepcionistaDashboard';
 import RecepcionistaPerfil from './pages/recepcionista/RecepcionistaPerfil';
+import AsignarCitas from './pages/recepcionista/AsignarCitas';
 
 // Páginas del cliente
 import ClienteDashboard from './pages/cliente/ClienteDashboard';
@@ -69,6 +70,7 @@ function App() {
                   <Routes>
                     <Route path="dashboard" element={<RecepcionistaDashboard />} />
                     <Route path="calendario" element={<RecepcionistaDashboard />} />
+                    <Route path="asignar-citas" element={<AsignarCitas />} />
                     <Route path="perfil" element={<RecepcionistaPerfil />} />
                     <Route path="*" element={<Navigate to="/recepcionista/dashboard" replace />} />
                   </Routes>

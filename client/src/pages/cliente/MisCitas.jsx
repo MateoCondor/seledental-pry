@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
-import { FiCalendar, FiClock, FiUser, FiFileText, FiX, FiPlus, FiRefreshCw, FiEdit3, FiEye } from 'react-icons/fi';
+import { FiCalendar, FiClock, FiUser, FiFileText, FiX, FiPlus, FiRefreshCw, FiEdit3, FiEye, FiArrowLeft } from 'react-icons/fi';
+import { useNavigate } from 'react-router-dom';
 import { Link } from 'react-router-dom';
 import ClienteLayout from '../../components/layouts/ClienteLayout';
 import citaService from '../../services/citaService';
@@ -12,6 +13,7 @@ import ReagendarCitaModal from '../../components/modals/ReagendarCitaModal';
  * @returns {JSX.Element} Componente de mis citas
  */
 const MisCitas = () => {
+  const navigate = useNavigate(); 
   const [citas, setCitas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filtroEstado, setFiltroEstado] = useState('todas');
@@ -172,6 +174,14 @@ const MisCitas = () => {
   return (
     <ClienteLayout>
       <div className="space-y-8">
+        {/* Botón de regreso */}
+        <button
+          onClick={() => navigate('/cliente/dashboard')}
+          className="flex items-center text-gray-600 hover:text-gray-900 transition-colors"
+        >
+          <FiArrowLeft className="mr-2 h-5 w-5" />
+          Volver al inicio
+        </button>
         {/* Header con acciones */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
@@ -210,16 +220,15 @@ const MisCitas = () => {
           ].map((filtro) => {
             const Icon = filtro.icon;
             const isActive = filtroEstado === filtro.key;
-            
+
             return (
               <button
                 key={filtro.key}
                 onClick={() => setFiltroEstado(filtro.key)}
-                className={`p-3 rounded-lg border-2 transition-all duration-200 ${
-                  isActive
+                className={`p-3 rounded-lg border-2 transition-all duration-200 ${isActive
                     ? 'border-primary bg-primary text-white shadow-md'
                     : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm'
-                }`}
+                  }`}
               >
                 <div className="flex flex-col items-center space-y-1">
                   <Icon className={`h-5 w-5 ${isActive ? 'text-white' : 'text-gray-500'}`} />
@@ -385,7 +394,7 @@ const MisCitas = () => {
                           Reagendar
                         </button>
                       )}
-                      
+
                       {puedeCancelar(cita) && (
                         <button
                           onClick={() => handleCancelarCita(cita)}
