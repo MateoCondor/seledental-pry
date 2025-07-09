@@ -8,7 +8,7 @@ const { generarJWT } = require('../utils/jwt');
 const { successResponse, errorResponse } = require('../utils/responses');
 
 /**
- * Registra un nuevo cliente (registro público)
+ * Registra un nuevo cliente (registro públi  co)
  * @param {Object} req - Objeto de solicitud Express
  * @param {Object} res - Objeto de respuesta Express
  */
