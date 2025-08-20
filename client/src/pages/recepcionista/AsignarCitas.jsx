@@ -4,6 +4,7 @@ import { FiCalendar, FiClock, FiUser, FiSearch, FiFilter, FiRefreshCw, FiUserPlu
 import RecepcionistaLayout from '../../components/layouts/RecepcionistaLayout';
 import citaService from '../../services/citaService';
 import AsignarOdontologoModal from '../../components/modals/AsignarOdontologoModal';
+import useWebSocket from '../../hooks/useWebSocket';
 
 /**
  * Página para asignar odontólogos a las citas pendientes
@@ -21,6 +22,20 @@ const AsignarCitas = () => {
   // Estados para el modal de asignación
   const [citaSeleccionada, setCitaSeleccionada] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // WebSocket
+  const {
+    joinRecepcionistaRoom,
+    leaveRecepcionistaRoom,
+    onNuevaCita,
+    offNuevaCita,
+    onCitaCancelada,
+    offCitaCancelada,
+    onCitaReagendada,
+    offCitaReagendada,
+    onCitaAsignadaOdontologo,
+    offCitaAsignadaOdontologo
+  } = useWebSocket();
 
   /**
    * Cargar citas pendientes
@@ -56,6 +71,73 @@ const AsignarCitas = () => {
   useEffect(() => {
     loadCitasPendientes();
   }, [filtroFecha]);
+
+  // WebSocket effect para actualizaciones en tiempo real
+  useEffect(() => {
+    // Unirse a la sala de recepcionistas
+    joinRecepcionistaRoom();
+
+    // Escuchar nuevas citas
+    onNuevaCita((data) => {
+      console.log('Nueva cita recibida:', data);
+      toast.success('¡Nueva cita pendiente de asignación!', {
+        duration: 4000,
+        icon: '🦷',
+      });
+      loadCitasPendientes(paginaActual); // Recargar citas para mostrar la nueva
+    });
+
+    // Escuchar citas canceladas
+    onCitaCancelada((data) => {
+      console.log('Cita cancelada:', data);
+      toast.info('Una cita ha sido cancelada por el cliente', {
+        duration: 4000,
+        icon: '❌',
+      });
+      loadCitasPendientes(paginaActual); // Recargar citas para actualizar la lista
+    });
+
+    // Escuchar citas reagendadas
+    onCitaReagendada((data) => {
+      console.log('Cita reagendada:', data);
+      toast.info('Una cita ha sido reagendada por el cliente', {
+        duration: 4000,
+        icon: '📅',
+      });
+      loadCitasPendientes(paginaActual); // Recargar citas para actualizar la lista
+    });
+
+    // Escuchar asignaciones de odontólogo (cuando otra recepcionista asigna)
+    onCitaAsignadaOdontologo((data) => {
+      console.log('Odontólogo asignado a cita:', data);
+      toast.success('Una cita ha sido asignada a un odontólogo', {
+        duration: 3000,
+        icon: '👨‍⚕️',
+      });
+      loadCitasPendientes(paginaActual); // Recargar citas para actualizar la lista
+    });
+
+    // Cleanup al desmontar el componente
+    return () => {
+      leaveRecepcionistaRoom();
+      offNuevaCita();
+      offCitaCancelada();
+      offCitaReagendada();
+      offCitaAsignadaOdontologo();
+    };
+  }, [
+    joinRecepcionistaRoom, 
+    leaveRecepcionistaRoom, 
+    onNuevaCita, 
+    offNuevaCita,
+    onCitaCancelada,
+    offCitaCancelada,
+    onCitaReagendada,
+    offCitaReagendada,
+    onCitaAsignadaOdontologo,
+    offCitaAsignadaOdontologo,
+    paginaActual
+  ]);
 
   /**
    * Manejar cambio de fecha del filtro
@@ -137,9 +219,9 @@ const AsignarCitas = () => {
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Asignación de Odontólogos</h1>
+              <h1 className="text-2xl font-bold text-gray-900">Citas Pendientes</h1>
               <p className="text-gray-600 mt-1">
-                Gestiona las citas pendientes de asignación de profesional
+                Gestiona las citas pendientes de asignación de odontólogos
               </p>
             </div>
             
@@ -153,14 +235,6 @@ const AsignarCitas = () => {
                   </div>
                 </div>
               </div>
-              
-              <button
-                onClick={() => loadCitasPendientes(paginaActual)}
-                className="btn btn-secondary flex items-center"
-              >
-                <FiRefreshCw className="mr-2 h-4 w-4" />
-                Actualizar
-              </button>
             </div>
           </div>
         </div>
@@ -206,7 +280,7 @@ const AsignarCitas = () => {
             <div className="flex items-end">
               <button
                 onClick={limpiarFiltros}
-                className="btn btn-primary flex items-center h-10"
+                className="inline-flex items-center justify-center px-4 pt-2.5 btn btn-primary whitespace-nowrap"
               >
                 <FiFilter className="mr-2 h-4 w-4" />
                 Limpiar
@@ -244,8 +318,8 @@ const AsignarCitas = () => {
             <>
               <div className="divide-y divide-gray-200">
                 {citasFiltradas.map((cita) => (
-                  <div key={cita.id} className="p-6 hover:bg-gray-50 transition-colors">
-                    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                  <div key={cita.id} className="p-6">
+                    <div className="flex flex-col lg:justify-between gap-4">
                       {/* Información de la cita */}
                       <div className="flex-1 space-y-3">
                         <div className="flex items-start justify-between">
@@ -320,7 +394,7 @@ const AsignarCitas = () => {
                       </div>
 
                       {/* Acciones */}
-                      <div className="lg:pl-6">
+                      <div className="flex justify-end">
                         <button
                           onClick={() => handleAsignarOdontologo(cita)}
                           className="btn btn-primary flex items-center w-full lg:w-auto"

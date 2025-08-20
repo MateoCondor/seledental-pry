@@ -162,6 +162,56 @@ const citaService = {
       console.error('Error al asignar odontólogo:', error);
       throw error;
     }
+  },
+
+  // Funciones para odontólogos
+  /**
+   * Obtiene las citas asignadas a un odontólogo
+   * @param {Object} params - Parámetros de consulta (fecha, estado)
+   * @returns {Promise<Object>} Response con las citas del odontólogo
+   */
+  getCitasOdontologo: async (params = {}) => {
+    try {
+      const queryParams = new URLSearchParams(params).toString();
+      const response = await api.get(`/citas/odontologo/mis-citas${queryParams ? `?${queryParams}` : ''}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error al obtener citas del odontólogo:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Inicia una cita (cambia estado a "en proceso")
+   * @param {number} citaId - ID de la cita
+   * @returns {Promise<Object>} Response con la cita actualizada
+   */
+  iniciarCita: async (citaId) => {
+    try {
+      const response = await api.put(`/citas/${citaId}/iniciar`);
+      return response.data;
+    } catch (error) {
+      console.error('Error al iniciar cita:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Completa una cita y agrega notas del odontólogo
+   * @param {number} citaId - ID de la cita
+   * @param {string} notasOdontologo - Notas del odontólogo
+   * @returns {Promise<Object>} Response con la cita completada
+   */
+  completarCita: async (citaId, notasOdontologo = '') => {
+    try {
+      const response = await api.put(`/citas/${citaId}/completar`, {
+        notasOdontologo
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error al completar cita:', error);
+      throw error;
+    }
   }
 };
 

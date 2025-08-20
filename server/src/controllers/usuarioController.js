@@ -288,6 +288,7 @@ const actualizarUsuario = async (req, res) => {
     return errorResponse(res, 500, 'Error al actualizar el usuario');
   }
 };
+
 /**
  * Elimina un usuario (desactivación lógica)
  * @param {Object} req - Objeto de solicitud Express

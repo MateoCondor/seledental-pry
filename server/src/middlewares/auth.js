@@ -46,7 +46,7 @@ const auth = async (req, res, next) => {
       id: usuario.id,
       email: usuario.email,
       rol: usuario.rol,
-      perfilCompleto: usuario.perfilCompleto // Agregar este campo
+      perfilCompleto: usuario.perfilCompleto
     };
     
     // Continuar con la siguiente función en la cadena de middleware

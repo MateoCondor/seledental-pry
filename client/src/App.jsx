@@ -27,6 +27,7 @@ import MisCitas from './pages/cliente/MisCitas';
 // Páginas del odontólogo
 import OdontologoDashboard from './pages/odontologo/OdontologoDashboard';
 import OdontologoPerfil from './pages/odontologo/OdontologoPerfil';
+import MisCitasOdontologo from './pages/odontologo/MisCitasOdontologo';
 
 /**
  * Componente principal de la aplicación
@@ -68,9 +69,9 @@ function App() {
               <RoleRoute allowedRoles="recepcionista">
                 <PerfilCompletoWrapper>
                   <Routes>
-                    <Route path="dashboard" element={<RecepcionistaDashboard />} />
+                    <Route path="clientes" element={<RecepcionistaDashboard />} />
                     <Route path="calendario" element={<RecepcionistaDashboard />} />
-                    <Route path="asignar-citas" element={<AsignarCitas />} />
+                    <Route path="citas" element={<AsignarCitas />} />
                     <Route path="perfil" element={<RecepcionistaPerfil />} />
                     <Route path="*" element={<Navigate to="/recepcionista/dashboard" replace />} />
                   </Routes>
@@ -85,7 +86,7 @@ function App() {
               <RoleRoute allowedRoles="odontologo">
                 <Routes>
                   <Route path="dashboard" element={<OdontologoDashboard />} />
-                  <Route path="citas" element={<OdontologoDashboard />} />
+                  <Route path="citas" element={<MisCitasOdontologo />} />
                   <Route path="perfil" element={<OdontologoPerfil />} />
                   <Route path="*" element={<Navigate to="/odontologo/dashboard" replace />} />
                 </Routes>

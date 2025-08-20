@@ -130,7 +130,7 @@ const OdontologoLayout = ({ children }) => {
           <div className="pt-4 pb-3 border-t border-gray-200">
             <div className="px-3 flex items-center">
               <div className="flex-shrink-0 h-10 w-10">
-                <div className="h-10 w-10 rounded-full bg-gradient-to-r from-green-400 to-green-600 flex items-center justify-center">
+                <div className="h-10 w-10 rounded-full bg-gradient-to-r from-purple-400 to-purple-600 flex items-center justify-center">
                   <span className="text-white font-medium text-sm">
                     {user?.nombre?.charAt(0)}{user?.apellido?.charAt(0)}
                   </span>

@@ -106,7 +106,7 @@ export const AuthProvider = ({ children }) => {
         navigate('/admin/dashboard');
         break;
       case 'recepcionista':
-        navigate('/recepcionista/dashboard');
+        navigate('/recepcionista/clientes');
         break;
       case 'cliente':
         navigate('/cliente/dashboard');

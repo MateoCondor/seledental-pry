@@ -29,8 +29,9 @@ router.get('/pendientes', checkRol(['recepcionista', 'administrador']), citaCont
 router.get('/odontologos', checkRol(['recepcionista', 'administrador']), citaController.obtenerOdontologos);
 router.put('/:id/asignar-odontologo', checkRol(['recepcionista', 'administrador']), citaController.asignarOdontologo);
 
-// Aquí se agregarán más rutas para odontólogos y administradores
-// router.get('/odontologo', checkRol(['odontologo']), citaController.obtenerCitasOdontologo);
-// router.put('/:id/confirmar', checkRol(['recepcionista', 'administrador']), citaController.confirmarCita);
+// Rutas para odontólogos
+router.get('/odontologo/mis-citas', checkRol(['odontologo']), citaController.obtenerCitasOdontologo);
+router.put('/:id/iniciar', checkRol(['odontologo']), citaController.iniciarCita);
+router.put('/:id/completar', checkRol(['odontologo']), citaController.completarCita);
 
 module.exports = router;

@@ -6,7 +6,15 @@
 const { Usuario, Cita } = require('../models');
 const { successResponse, errorResponse } = require('../utils/responses');
 const { Op } = require('sequelize');
-const { notificarCambioHorarios } = require('../config/websocket');
+const { 
+  notificarCambioHorarios, 
+  notificarNuevaCita, 
+  notificarAsignacionOdontologo, 
+  notificarCambioEstadoCita,
+  notificarCitaAsignadaOdontologo,
+  notificarCambioCitaOdontologo
+} = require('../config/websocket');
+const { enviarCorreoNuevaCita } = require('../services/emailService');
 
 /**
  * Obtiene las categorías disponibles según el tipo de consulta
@@ -264,6 +272,18 @@ const crearCita = async (req, res) => {
     // Notificar cambios en horarios vía WebSocket - usar la fecha original
     notificarCambioHorarios(fechaParte);
 
+    // Notificar nueva cita a recepcionistas
+    notificarNuevaCita(citaCreada);
+
+    // Enviar correo de confirmación al cliente
+    try {
+      await enviarCorreoNuevaCita(citaCreada, citaCreada.cliente);
+      console.log('✅ Correo de confirmación enviado al cliente:', citaCreada.cliente.email);
+    } catch (emailError) {
+      console.error('⚠️ Error al enviar correo de confirmación:', emailError);
+      // No interrumpimos el flujo si falla el correo, solo lo registramos
+    }
+
     return successResponse(res, 201, 'Cita agendada correctamente', {
       cita: citaCreada
     });
@@ -396,6 +416,16 @@ const cancelarCita = async (req, res) => {
         }
       ]
     });
+
+    // Notificar cambio de estado al cliente
+    notificarCambioEstadoCita(cita.clienteId, citaCancelada);
+
+    // Notificar a recepcionistas sobre la cancelación
+    const { getIO } = require('../config/websocket');
+    const io = getIO();
+    if (io) {
+      io.to('recepcionistas').emit('cita_cancelada', { cita: citaCancelada });
+    }
 
     return successResponse(res, 200, 'Cita cancelada correctamente. Los horarios han sido liberados y están disponibles nuevamente.', { 
       cita: citaCancelada 
@@ -537,6 +567,19 @@ const reagendarCita = async (req, res) => {
         }
       ]
     });
+
+    // Notificar cambio de estado al cliente
+    notificarCambioEstadoCita(cita.clienteId, citaReagendada);
+
+    // Notificar a recepcionistas sobre el reagendamiento
+    const { getIO } = require('../config/websocket');
+    const io = getIO();
+    if (io) {
+      io.to('recepcionistas').emit('cita_reagendada', { 
+        cita: citaReagendada,
+        fechaAnterior: fechaAnterior 
+      });
+    }
 
     return successResponse(res, 200, 'Cita reagendada correctamente', { 
       cita: citaReagendada 
@@ -735,12 +778,218 @@ const asignarOdontologo = async (req, res) => {
       ]
     });
 
+    // Notificar asignación al cliente
+    notificarAsignacionOdontologo(cita.clienteId, citaActualizada);
+
+    // Notificar al odontólogo que tiene una nueva cita asignada
+    notificarCitaAsignadaOdontologo(odontologoId, citaActualizada);
+
+    // Notificar a recepcionistas que la cita ya fue asignada
+    const { getIO } = require('../config/websocket');
+    const io = getIO();
+    if (io) {
+      io.to('recepcionistas').emit('cita_asignada_odontologo', { cita: citaActualizada });
+    }
+
     return successResponse(res, 200, 'Odontólogo asignado correctamente', {
       cita: citaActualizada
     });
   } catch (error) {
     console.error('Error al asignar odontólogo:', error);
     return errorResponse(res, 500, 'Error al asignar el odontólogo');
+  }
+};
+
+/**
+ * Obtiene las citas asignadas a un odontólogo
+ * @param {Object} req - Objeto de solicitud Express
+ * @param {Object} res - Objeto de respuesta Express
+ */
+const obtenerCitasOdontologo = async (req, res) => {
+  try {
+    const odontologoId = req.usuario.id;
+    const { fecha, estado } = req.query;
+
+    let whereCondition = {
+      odontologoId: odontologoId
+    };
+
+    // Filtrar por fecha si se proporciona
+    if (fecha) {
+      const fechaConsulta = new Date(fecha);
+      const fechaInicio = new Date(fechaConsulta.getFullYear(), fechaConsulta.getMonth(), fechaConsulta.getDate(), 0, 0, 0, 0);
+      const fechaFin = new Date(fechaConsulta.getFullYear(), fechaConsulta.getMonth(), fechaConsulta.getDate(), 23, 59, 59, 999);
+      
+      whereCondition.fechaHora = {
+        [Op.between]: [fechaInicio, fechaFin]
+      };
+    }
+
+    // Filtrar por estado si se proporciona
+    if (estado) {
+      whereCondition.estado = estado;
+    }
+
+    const citas = await Cita.findAll({
+      where: whereCondition,
+      include: [
+        {
+          model: Usuario,
+          as: 'cliente',
+          attributes: ['id', 'nombre', 'apellido', 'email', 'celular', 'fechaNacimiento']
+        }
+      ],
+      order: [['fechaHora', 'ASC']]
+    });
+
+    return successResponse(res, 200, 'Citas del odontólogo obtenidas correctamente', {
+      citas
+    });
+  } catch (error) {
+    console.error('Error al obtener citas del odontólogo:', error);
+    return errorResponse(res, 500, 'Error al obtener las citas del odontólogo');
+  }
+};
+
+/**
+ * Marca una cita como completada y permite agregar notas del odontólogo
+ * @param {Object} req - Objeto de solicitud Express
+ * @param {Object} res - Objeto de respuesta Express
+ */
+const completarCita = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { notasOdontologo } = req.body;
+    const odontologoId = req.usuario.id;
+
+    // Buscar la cita
+    const cita = await Cita.findByPk(id, {
+      include: [
+        {
+          model: Usuario,
+          as: 'cliente',
+          attributes: ['id', 'nombre', 'apellido', 'email', 'celular']
+        },
+        {
+          model: Usuario,
+          as: 'odontologo',
+          attributes: ['id', 'nombre', 'apellido', 'email']
+        }
+      ]
+    });
+
+    if (!cita) {
+      return errorResponse(res, 404, 'Cita no encontrada');
+    }
+
+    // Verificar que la cita pertenece al odontólogo
+    if (cita.odontologoId !== odontologoId) {
+      return errorResponse(res, 403, 'No tienes autorización para completar esta cita');
+    }
+
+    // Verificar que la cita está en estado confirmada o en_proceso
+    if (!['confirmada', 'en_proceso'].includes(cita.estado)) {
+      return errorResponse(res, 400, 'Solo se pueden completar citas confirmadas o en proceso');
+    }
+
+    // Actualizar la cita
+    await cita.update({
+      estado: 'completada',
+      notasOdontologo: notasOdontologo || null
+    });
+
+    // Recargar la cita con los datos actualizados
+    await cita.reload();
+
+    // Notificar al cliente sobre la actualización
+    notificarCambioEstadoCita(cita.clienteId, cita);
+
+    // Notificar específicamente al cliente que la cita fue completada
+    const { getIO } = require('../config/websocket');
+    const io = getIO();
+    if (io) {
+      // Notificar al cliente específico sobre la cita completada
+      io.to(`cliente_${cita.clienteId}`).emit('cita_completada', { cita });
+      // Notificar a recepcionistas sobre la cita completada
+      io.to('recepcionistas').emit('cita_completada', { cita });
+    }
+
+    return successResponse(res, 200, 'Cita completada correctamente', {
+      cita
+    });
+  } catch (error) {
+    console.error('Error al completar cita:', error);
+    return errorResponse(res, 500, 'Error al completar la cita');
+  }
+};
+
+/**
+ * Cambia el estado de una cita a "en proceso"
+ * @param {Object} req - Objeto de solicitud Express
+ * @param {Object} res - Objeto de respuesta Express
+ */
+const iniciarCita = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const odontologoId = req.usuario.id;
+
+    // Buscar la cita
+    const cita = await Cita.findByPk(id, {
+      include: [
+        {
+          model: Usuario,
+          as: 'cliente',
+          attributes: ['id', 'nombre', 'apellido', 'email', 'celular']
+        },
+        {
+          model: Usuario,
+          as: 'odontologo',
+          attributes: ['id', 'nombre', 'apellido', 'email']
+        }
+      ]
+    });
+
+    if (!cita) {
+      return errorResponse(res, 404, 'Cita no encontrada');
+    }
+
+    // Verificar que la cita pertenece al odontólogo
+    if (cita.odontologoId !== odontologoId) {
+      return errorResponse(res, 403, 'No tienes autorización para iniciar esta cita');
+    }
+
+    // Verificar que la cita está en estado confirmada
+    if (cita.estado !== 'confirmada') {
+      return errorResponse(res, 400, 'Solo se pueden iniciar citas confirmadas');
+    }
+
+    // Actualizar la cita
+    await cita.update({
+      estado: 'en_proceso'
+    });
+
+    // Recargar la cita con los datos actualizados
+    await cita.reload();
+
+    // Notificar al cliente sobre la actualización
+    notificarCambioEstadoCita(cita.clienteId, cita);
+
+    // Notificar específicamente al cliente que la cita fue iniciada
+    const { getIO } = require('../config/websocket');
+    const io = getIO();
+    if (io) {
+      // Notificar al cliente específico sobre la cita iniciada
+      io.to(`cliente_${cita.clienteId}`).emit('cita_iniciada', { cita });
+      // Notificar a recepcionistas sobre el cambio de estado
+      io.to('recepcionistas').emit('cita_iniciada', { cita });
+    }
+
+    return successResponse(res, 200, 'Cita iniciada correctamente', {
+      cita
+    });
+  } catch (error) {
+    console.error('Error al iniciar cita:', error);
+    return errorResponse(res, 500, 'Error al iniciar la cita');
   }
 };
 
@@ -753,5 +1002,8 @@ module.exports = {
   reagendarCita,
   obtenerCitasPendientes,
   obtenerOdontologos,
-  asignarOdontologo
+  asignarOdontologo,
+  obtenerCitasOdontologo,
+  completarCita,
+  iniciarCita
 };

@@ -117,7 +117,7 @@ const ReagendarCitaModal = ({ isOpen, onClose, onConfirm, cita }) => {
     <div className="fixed inset-0 z-50 overflow-y-auto">
       <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
         {/* Overlay */}
-        <div 
+        <div
           className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
           onClick={handleClose}
         />
@@ -125,20 +125,21 @@ const ReagendarCitaModal = ({ isOpen, onClose, onConfirm, cita }) => {
         {/* Modal */}
         <div className="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full sm:p-6">
           <div className="sm:flex sm:items-start">
-            <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 sm:mx-0 sm:h-10 sm:w-10">
-              <FiRefreshCw className="h-6 w-6 text-blue-600" />
-            </div>
-            
             <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left flex-1">
-              <h3 className="text-lg leading-6 font-medium text-gray-900 mb-2">
-                Reagendar Cita
-              </h3>
-              
-              <div className="mb-4">
+              <div className="flex items-center gap-3">
+                <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 sm:mx-0 sm:h-10 sm:w-10">
+                  <FiRefreshCw className="h-6 w-6 text-blue-600" />
+                </div>
+                <h3 className="text-lg leading-6 font-medium text-gray-900 mb-2">
+                  Reagendar Cita
+                </h3>
+              </div>
+
+              <div className="my-4">
                 <p className="text-sm text-gray-500 mb-3">
                   Selecciona una nueva fecha y hora para tu cita:
                 </p>
-                
+
                 <div className="bg-gray-50 p-3 rounded-lg">
                   <p className="text-sm font-medium text-gray-900 capitalize">
                     {cita.tipoConsulta?.replace('_', ' ')} - {cita.categoria?.replace(/_/g, ' ')}
@@ -246,7 +247,7 @@ const ReagendarCitaModal = ({ isOpen, onClose, onConfirm, cita }) => {
                   <div className="flex">
                     <div className="ml-3">
                       <p className="text-sm text-blue-700">
-                        <strong>Nota:</strong> Las citas deben reagendarse con al menos 24 horas de anticipación. 
+                        <strong>Nota:</strong> Las citas deben reagendarse con al menos 24 horas de anticipación.
                         Tu cita quedará como "pendiente" hasta ser confirmada nuevamente.
                       </p>
                     </div>
@@ -254,7 +255,7 @@ const ReagendarCitaModal = ({ isOpen, onClose, onConfirm, cita }) => {
                 </div>
 
                 {/* Botones */}
-                <div className="flex justify-end space-x-3">
+                <div className="flex justify-start space-x-3">
                   <button
                     type="button"
                     onClick={handleClose}
@@ -263,7 +264,7 @@ const ReagendarCitaModal = ({ isOpen, onClose, onConfirm, cita }) => {
                   >
                     Cancelar
                   </button>
-                  
+
                   <button
                     type="submit"
                     disabled={isLoading}
@@ -279,7 +280,6 @@ const ReagendarCitaModal = ({ isOpen, onClose, onConfirm, cita }) => {
                       </>
                     ) : (
                       <>
-                        <FiRefreshCw className="mr-2 h-4 w-4" />
                         Reagendar Cita
                       </>
                     )}

@@ -7,13 +7,16 @@ import ClienteLayout from '../../components/layouts/ClienteLayout';
 import citaService from '../../services/citaService';
 import CancelarCitaModal from '../../components/modals/CancelarCitaModal';
 import ReagendarCitaModal from '../../components/modals/ReagendarCitaModal';
+import useWebSocket from '../../hooks/useWebSocket';
+import useAuth from '../../hooks/useAuth';
 
 /**
  * Página para ver mis citas (clientes)
  * @returns {JSX.Element} Componente de mis citas
  */
 const MisCitas = () => {
-  const navigate = useNavigate(); 
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const [citas, setCitas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filtroEstado, setFiltroEstado] = useState('todas');
@@ -25,6 +28,20 @@ const MisCitas = () => {
   // Estados para modal de reagendamiento
   const [citaAReagendar, setCitaAReagendar] = useState(null);
   const [isModalReagendarOpen, setIsModalReagendarOpen] = useState(false);
+
+  // WebSocket
+  const {
+    joinClienteRoom,
+    leaveClienteRoom,
+    onCitaAsignada,
+    offCitaAsignada,
+    onCitaActualizada,
+    offCitaActualizada,
+    onCitaCompletada,
+    offCitaCompletada,
+    onCitaIniciada,
+    offCitaIniciada
+  } = useWebSocket();
 
   /**
    * Cargar las citas del cliente
@@ -49,6 +66,51 @@ const MisCitas = () => {
   useEffect(() => {
     loadCitas();
   }, [filtroEstado]);
+
+  // WebSocket effect para actualizaciones en tiempo real
+  useEffect(() => {
+    if (user?.id) {
+      // Unirse a la sala del cliente
+      joinClienteRoom(user.id);
+
+      // Escuchar cuando se asigne un odontólogo
+      onCitaAsignada((data) => {
+        console.log('Odontólogo asignado:', data);
+        toast.success('¡Se ha asignado un odontólogo a tu cita!');
+        loadCitas(); // Recargar citas para mostrar el cambio
+      });
+
+      // Escuchar actualizaciones de citas
+      onCitaActualizada((data) => {
+        console.log('Cita actualizada:', data);
+        toast.info('Una de tus citas ha sido actualizada');
+        loadCitas(); // Recargar citas para mostrar el cambio
+      });
+
+      // Escuchar cuando una cita se marca como completada
+      onCitaCompletada((data) => {
+        console.log('Cita completada:', data);
+        toast.success('¡Tu cita ha sido completada!');
+        loadCitas(); // Recargar citas para mostrar el cambio
+      });
+
+      // Escuchar cuando una cita se inicia (pasa a en_proceso)
+      onCitaIniciada((data) => {
+        console.log('Cita iniciada:', data);
+        toast.info('Tu cita ha comenzado y está en proceso');
+        loadCitas(); // Recargar citas para mostrar el cambio
+      });
+
+      // Cleanup al desmontar el componente
+      return () => {
+        leaveClienteRoom(user.id);
+        offCitaAsignada();
+        offCitaActualizada();
+        offCitaCompletada();
+        offCitaIniciada();
+      };
+    }
+  }, [user?.id, joinClienteRoom, leaveClienteRoom, onCitaAsignada, offCitaAsignada, onCitaActualizada, offCitaActualizada, onCitaCompletada, offCitaCompletada, onCitaIniciada, offCitaIniciada]);
 
   /**
    * Manejar cancelación de cita
@@ -143,7 +205,7 @@ const MisCitas = () => {
    * @returns {boolean} - Si se puede cancelar
    */
   const puedeCancelar = (cita) => {
-    const estadosNoCancelables = ['completada', 'cancelada', 'no_asistio'];
+    const estadosNoCancelables = ['completada', 'cancelada', 'no_asistio', 'en_proceso'];
     if (estadosNoCancelables.includes(cita.estado)) return false;
 
     // Verificar que falten más de 24 horas
@@ -160,7 +222,7 @@ const MisCitas = () => {
    * @returns {boolean} - Si se puede reagendar
    */
   const puedeReagendar = (cita) => {
-    const estadosNoReagendables = ['completada', 'cancelada', 'no_asistio'];
+    const estadosNoReagendables = ['completada', 'cancelada', 'no_asistio', 'en_proceso'];
     if (estadosNoReagendables.includes(cita.estado)) return false;
 
     // Verificar que falten más de 24 horas
@@ -191,14 +253,6 @@ const MisCitas = () => {
           </div>
 
           <div className="flex gap-3">
-            <button
-              onClick={loadCitas}
-              className="btn btn-secondary flex items-center"
-            >
-              <FiRefreshCw className="mr-2 h-4 w-4" />
-              Actualizar
-            </button>
-
             <Link
               to="/cliente/agendar-cita"
               className="btn btn-primary flex items-center"
@@ -210,11 +264,12 @@ const MisCitas = () => {
         </div>
 
         {/* Tarjetas de filtros */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
           {[
             { key: 'todas', label: 'Todas', icon: FiEye, color: 'bg-gray-100 text-gray-800' },
             { key: 'pendiente', label: 'Pendientes', icon: FiClock, color: 'bg-yellow-100 text-yellow-800' },
             { key: 'confirmada', label: 'Confirmadas', icon: FiCalendar, color: 'bg-blue-100 text-blue-800' },
+            { key: 'en_proceso', label: 'En Proceso', icon: FiRefreshCw, color: 'bg-purple-100 text-purple-800' },
             { key: 'completada', label: 'Completadas', icon: FiUser, color: 'bg-green-100 text-green-800' },
             { key: 'cancelada', label: 'Canceladas', icon: FiX, color: 'bg-red-100 text-red-800' }
           ].map((filtro) => {
@@ -226,8 +281,8 @@ const MisCitas = () => {
                 key={filtro.key}
                 onClick={() => setFiltroEstado(filtro.key)}
                 className={`p-3 rounded-lg border-2 transition-all duration-200 ${isActive
-                    ? 'border-primary bg-primary text-white shadow-md'
-                    : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm'
+                  ? 'border-primary bg-primary text-white shadow-md'
+                  : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm'
                   }`}
               >
                 <div className="flex flex-col items-center space-y-1">
@@ -270,7 +325,7 @@ const MisCitas = () => {
                 className="btn btn-primary inline-flex items-center"
               >
                 <FiPlus className="mr-2 h-4 w-4" />
-                Agendar Primera Cita
+                Agendar Cita
               </Link>
             </div>
           ) : (
@@ -382,30 +437,40 @@ const MisCitas = () => {
                         </div>
                       )}
                     </div>
-
-                    {/* Acciones */}
-                    <div className="flex lg:flex-col gap-2">
-                      {puedeReagendar(cita) && (
-                        <button
-                          onClick={() => handleReagendarCita(cita)}
-                          className="inline-flex items-center px-3 py-2 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
-                        >
-                          <FiEdit3 className="mr-1 h-4 w-4" />
-                          Reagendar
-                        </button>
-                      )}
-
-                      {puedeCancelar(cita) && (
-                        <button
-                          onClick={() => handleCancelarCita(cita)}
-                          className="inline-flex items-center px-3 py-2 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
-                        >
-                          <FiX className="mr-1 h-4 w-4" />
-                          Cancelar
-                        </button>
-                      )}
-                    </div>
                   </div>
+
+                  {/* Acciones */}
+                  <div className="flex gap-2 mt-4">
+                    {cita.estado === 'en_proceso' && (
+                      <div className="flex items-center px-3 py-2 bg-purple-50 border border-purple-200 rounded-lg">
+                        <FiRefreshCw className="mr-2 h-4 w-4 text-purple-600 animate-spin" />
+                        <span className="text-sm text-purple-700 font-medium">
+                          Cita en proceso - No se puede modificar
+                        </span>
+                      </div>
+                    )}
+
+                    {puedeReagendar(cita) && (
+                      <button
+                        onClick={() => handleReagendarCita(cita)}
+                        className="inline-flex items-center px-3 py-2 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
+                      >
+                        <FiEdit3 className="mr-1 h-4 w-4" />
+                        Reagendar
+                      </button>
+                    )}
+
+                    {puedeCancelar(cita) && (
+                      <button
+                        onClick={() => handleCancelarCita(cita)}
+                        className="inline-flex items-center px-3 py-2 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
+                      >
+                        <FiX className="mr-1 h-4 w-4" />
+                        Cancelar
+                      </button>
+                    )}
+                  </div>
+
                 </div>
               ))}
             </div>

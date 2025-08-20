@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { FiMenu, FiX, FiUser, FiLogOut, FiHome, FiCalendar, FiUserPlus } from 'react-icons/fi';
+import { FiMenu, FiX, FiUser, FiLogOut, FiHome, FiCalendar, FiUserPlus, FiUsers } from 'react-icons/fi';
 import useAuth from '../../hooks/useAuth';
 import PropTypes from 'prop-types';
 
@@ -24,19 +24,14 @@ const RecepcionistaLayout = ({ children, title }) => {
   // Enlaces del menú
   const navLinks = [
     {
-      name: 'Inicio',
-      path: '/recepcionista/dashboard',
-      icon: <FiHome className="h-5 w-5" />
+      name: 'Clientes',
+      path: '/recepcionista/clientes',
+      icon: <FiUsers className="h-5 w-5" />
     },
     {
       name: 'Citas',
-      path: '/recepcionista/calendario',
+      path: '/recepcionista/citas',
       icon: <FiCalendar className="h-5 w-5" />
-    },
-    {
-      name: 'Asignar Odontólogos',
-      path: '/recepcionista/asignar-citas',
-      icon: <FiUserPlus className="h-5 w-5" />
     },
     {
       name: 'Mi Perfil',

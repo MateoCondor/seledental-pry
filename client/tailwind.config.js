@@ -12,8 +12,11 @@ export default {
         secondary: '#6455FC', // Indigo 600
         secondaryDark: '#4f43c9', // Indigo 700
         accent: '#22C55E', // Green 500
+        accentDark: '#16A34A', // Green 600
         danger: '#EF4444', // Red 500
+        dangerDark: '#C62828', // Red 600
         light: '#F8FAFC', // Slate 50
+        dark: '#1E293B', // Slate 800
       },
     },
   },
