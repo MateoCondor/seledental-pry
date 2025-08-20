@@ -41,6 +41,7 @@ api.interceptors.response.use(
     if (error instanceof Error) {
       return Promise.reject(error);
     }
+  
     return Promise.reject(new Error(error?.message || 'Unknown error'));
   }
 );
