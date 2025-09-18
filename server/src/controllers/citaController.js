@@ -14,7 +14,6 @@ const {
   notificarCitaAsignadaOdontologo,
   notificarCambioCitaOdontologo
 } = require('../config/websocket');
-const { enviarCorreoNuevaCita } = require('../services/emailService');
 
 /**
  * Obtiene las categorías disponibles según el tipo de consulta
@@ -274,15 +273,6 @@ const crearCita = async (req, res) => {
 
     // Notificar nueva cita a recepcionistas
     notificarNuevaCita(citaCreada);
-
-    // Enviar correo de confirmación al cliente
-    try {
-      await enviarCorreoNuevaCita(citaCreada, citaCreada.cliente);
-      console.log('✅ Correo de confirmación enviado al cliente:', citaCreada.cliente.email);
-    } catch (emailError) {
-      console.error('⚠️ Error al enviar correo de confirmación:', emailError);
-      // No interrumpimos el flujo si falla el correo, solo lo registramos
-    }
 
     return successResponse(res, 201, 'Cita agendada correctamente', {
       cita: citaCreada
