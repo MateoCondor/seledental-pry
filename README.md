@@ -223,7 +223,7 @@ rm -rf node_modules package-lock.json
 npm install
 ```
 
-### 📝 Notas Adicionales
+## 📝 Notas Adicionales
 
 - El proyecto utiliza **PostgreSQL** como base de datos principal
 - Las contraseñas se encriptan usando **bcryptjs**
@@ -231,7 +231,7 @@ npm install
 - La comunicación en tiempo real se maneja con **Socket.IO**
 - El frontend está optimizado con **Tailwind CSS** para una interfaz moderna
 
-### 📄 Autoria
+## 📄 Autoria
 
 Este proyecto esta desarrollado y elaborado por Mateo Condor - D3mian.
 
